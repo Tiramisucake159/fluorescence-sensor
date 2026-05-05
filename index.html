@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carbon Dot Fluorescence Sensor Analyzer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #04080f;
+    --surface: #080f1e;
+    --card: #0c1829;
+    --border: rgba(0,220,255,0.18);
+    --cyan: #00dcff;
+    --cyan-dim: rgba(0,220,255,0.12);
+    --green: #39ff7a;
+    --gold: #ffd84d;
+    --red: #ff5e7a;
+    --text: #cce8ff;
+    --text-dim: #6888aa;
+    --font-mono: 'Space Mono', monospace;
+    --font-body: 'Sarabun', sans-serif;
+    --glow: 0 0 20px rgba(0,220,255,0.35), 0 0 60px rgba(0,220,255,0.12);
+    --glow-green: 0 0 20px rgba(57,255,122,0.35);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Particle background */
+  #particles {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0; overflow: hidden;
+  }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--cyan);
+    opacity: 0;
+    animation: float-up linear infinite;
+  }
+  @keyframes float-up {
+    0% { opacity: 0; transform: translateY(100vh) scale(0); }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.2; }
+    100% { opacity: 0; transform: translateY(-10vh) scale(1); }
+  }
+
+  /* Header */
+  header {
+    position: relative; z-index: 10;
+    padding: 28px 40px 20px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(0,220,255,0.04) 0%, transparent 100%);
+    display: flex; align-items: center; gap: 20px;
+  }
+  .logo-icon {
+    width: 52px; height: 52px;
+    background: var(--cyan-dim);
+    border: 1px solid var(--cyan);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    box-shadow: var(--glow);
+    flex-shrink: 0;
+  }
+  header h1 {
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    color: var(--cyan);
+    text-shadow: var(--glow);
+    letter-spacing: 0.05em;
+    line-height: 1.3;
+  }
+  header p {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 2px;
+    font-family: var(--font-mono);
+  }
+
+  /* Tabs */
+  .tabs {
+    position: relative; z-index: 10;
+    display: flex; gap: 0;
+    padding: 0 40px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .tab-btn {
+    padding: 14px 24px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-dim);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: -1px;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active {
+    color: var(--cyan);
+    border-bottom-color: var(--cyan);
+    text-shadow: 0 0 12px rgba(0,220,255,0.5);
+  }
+  .tab-icon { font-size: 1.1rem; }
+
+  /* Main */
+  main {
+    position: relative; z-index: 10;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px;
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title::before {
+    content: '';
+    width: 3px; height: 14px;
+    background: var(--cyan);
+    border-radius: 2px;
+    box-shadow: var(--glow);
+  }
+
+  /* Upload zone */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    background: rgba(0,220,255,0.02);
+  }
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--cyan);
+    background: var(--cyan-dim);
+    box-shadow: var(--glow);
+  }
+  .upload-zone input[type=file] { display: none; }
+  .upload-icon { font-size: 2.5rem; margin-bottom: 10px; }
+  .upload-zone h3 { font-size: 1rem; color: var(--text); margin-bottom: 6px; }
+  .upload-zone p { font-size: 0.82rem; color: var(--text-dim); }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+  .btn-cyan {
+    background: var(--cyan);
+    color: #000;
+    box-shadow: 0 0 16px rgba(0,220,255,0.3);
+  }
+  .btn-cyan:hover { background: #33e8ff; box-shadow: var(--glow); transform: translateY(-1px); }
+  .btn-outline {
+    background: transparent;
+    color: var(--cyan);
+    border: 1px solid var(--cyan);
+  }
+  .btn-outline:hover { background: var(--cyan-dim); }
+  .btn-green {
+    background: var(--green);
+    color: #000;
+    box-shadow: 0 0 16px rgba(57,255,122,0.3);
+  }
+  .btn-green:hover { background: #5fffaa; box-shadow: var(--glow-green); }
+  .btn-red {
+    background: var(--red);
+    color: #fff;
+  }
+
+  /* Select */
+  select {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    cursor: pointer;
+    outline: none;
+  }
+  select:focus { border-color: var(--cyan); }
+
+  /* Chart container */
+  .chart-wrap {
+    position: relative;
+    background: rgba(0,0,0,0.3);
+    border-radius: 10px;
+    padding: 16px;
+    height: 380px;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .stat-box {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+  .stat-box:hover { border-color: var(--cyan); }
+  .stat-box .conc {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  .stat-box .peak {
+    font-family: var(--font-mono);
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+  .stat-box .quench {
+    font-size: 0.75rem;
+    margin-top: 4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    display: inline-block;
+  }
+
+  /* Table */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  .data-table th {
+    background: var(--cyan-dim);
+    color: var(--cyan);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(0,220,255,0.06);
+    color: var(--text);
+  }
+  .data-table tr:hover td { background: rgba(0,220,255,0.04); }
+  .quench-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .quench-bar {
+    height: 6px; border-radius: 3px;
+    background: linear-gradient(90deg, var(--cyan), var(--green));
+    transition: width 0.6s ease;
+    min-width: 4px;
+  }
+
+  /* ─── Tab 2: Image ─── */
+  .two-col { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
+  .canvas-wrap {
+    position: relative;
+    background: #000;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: crosshair;
+    min-height: 360px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .canvas-wrap canvas { display: block; max-width: 100%; }
+  .canvas-placeholder {
+    position: absolute;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    text-align: center;
+    pointer-events: none;
+  }
+  .canvas-placeholder .big { font-size: 2.5rem; display: block; margin-bottom: 8px; }
+  .crosshair-indicator {
+    position: absolute;
+    width: 20px; height: 20px;
+    border: 2px solid var(--cyan);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    display: none;
+    box-shadow: 0 0 10px var(--cyan);
+  }
+
+  /* RGB display */
+  .rgb-display {
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .color-preview {
+    width: 100%; height: 80px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    transition: background 0.3s;
+    background: #1a1a2e;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .color-preview span {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    mix-blend-mode: difference;
+    color: #fff;
+    opacity: 0.7;
+  }
+  .rgb-channels { display: flex; flex-direction: column; gap: 8px; }
+  .rgb-bar-row { display: flex; align-items: center; gap: 10px; }
+  .rgb-label {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    width: 14px;
+    font-weight: 700;
+  }
+  .rgb-label.r { color: #ff5e7a; }
+  .rgb-label.g { color: #39ff7a; }
+  .rgb-label.b { color: #4da6ff; }
+  .rgb-track {
+    flex: 1; height: 8px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px; overflow: hidden;
+  }
+  .rgb-fill {
+    height: 100%; border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+  .rgb-fill.r { background: linear-gradient(90deg, #7a0020, #ff5e7a); }
+  .rgb-fill.g { background: linear-gradient(90deg, #006428, #39ff7a); }
+  .rgb-fill.b { background: linear-gradient(90deg, #001e7a, #4da6ff); }
+  .rgb-val {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    width: 32px;
+    text-align: right;
+    color: var(--text);
+  }
+
+  /* Sampled history */
+  .sample-list { display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; }
+  .sample-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    border: 1px solid var(--border);
+  }
+  .swatch { width: 22px; height: 22px; border-radius: 4px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.15); }
+  .sample-rgb { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-dim); }
+
+  /* ─── Tab 3: Camera ─── */
+  .camera-wrap {
+    position: relative;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 4/3;
+    max-height: 460px;
+    cursor: crosshair;
+  }
+  #cameraVideo {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  #cameraCanvas { display: none; }
+  .camera-overlay {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.6);
+    flex-direction: column; gap: 12px;
+  }
+  .camera-reticle {
+    position: absolute; inset: 0; pointer-events: none;
+  }
+  .scan-line {
+    position: absolute; width: 100%; height: 2px;
+    background: linear-gradient(90deg, transparent 0%, var(--cyan) 50%, transparent 100%);
+    opacity: 0.4;
+    animation: scan 3s ease-in-out infinite;
+  }
+  @keyframes scan {
+    0% { top: 20%; }
+    50% { top: 80%; }
+    100% { top: 20%; }
+  }
+  .corner { position: absolute; width: 20px; height: 20px; }
+  .corner.tl { top: 12px; left: 12px; border-top: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
+  .corner.tr { top: 12px; right: 12px; border-top: 2px solid var(--cyan); border-right: 2px solid var(--cyan); }
+  .corner.bl { bottom: 12px; left: 12px; border-bottom: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
+  .corner.br { bottom: 12px; right: 12px; border-bottom: 2px solid var(--cyan); border-right: 2px solid var(--cyan); }
+
+  .live-dot {
+    display: inline-block; width: 8px; height: 8px;
+    background: var(--green); border-radius: 50%;
+    animation: pulse-dot 1.2s ease-in-out infinite;
+    box-shadow: var(--glow-green);
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  /* Tip box */
+  .tip-box {
+    background: rgba(0,220,255,0.06);
+    border: 1px solid rgba(0,220,255,0.2);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 0.83rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .tip-box b { color: var(--cyan); }
+
+  /* Badge */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+  .badge-fe { background: rgba(255,94,122,0.15); color: #ff8fa0; border: 1px solid rgba(255,94,122,0.3); }
+  .badge-zn { background: rgba(77,166,255,0.15); color: #80c0ff; border: 1px solid rgba(77,166,255,0.3); }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    header { padding: 16px 20px; }
+    main { padding: 20px; }
+    .tabs { padding: 0 20px; }
+    .two-col { grid-template-columns: 1fr; }
+    .tab-btn { padding: 12px 14px; font-size: 0.82rem; }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: rgba(0,220,255,0.3); border-radius: 3px; }
+
+  .flex-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .mt-3 { margin-top: 12px; }
+  .mt-4 { margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<!-- Particles -->
+<div id="particles"></div>
+
+<!-- Header -->
+<header>
+  <div class="logo-icon">🔬</div>
+  <div>
+    <h1>Carbon Dot Fluorescence Sensor Analyzer</h1>
+    <p>Heavy Metal Detection · Fluorescence Paper Sensor · RGB Analysis</p>
+  </div>
+</header>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('image')">
+    <span class="tab-icon">🖼️</span> อัปโหลดรูปภาพ
+  </button>
+  <button class="tab-btn" onclick="switchTab('camera')">
+    <span class="tab-icon">📷</span> ถ่ายภาพสด
+  </button>
+</div>
+
+<!-- Main -->
+<main>
+
+  <!-- ═══════════ TAB 1: IMAGE RGB ═══════════ -->
+  <div id="tab-image" class="tab-panel active">
+
+    <div class="card">
+      <div class="card-title">อัปโหลดภาพกระดาษเรืองแสง</div>
+      <label class="upload-zone" id="imgZone">
+        <input type="file" id="imgFile" accept="image/*" onchange="loadImage(this)">
+        <div class="upload-icon">🖼️</div>
+        <h3>คลิกหรือลากภาพมาวาง</h3>
+        <p>รองรับ JPG, PNG, WEBP · คลิกบนภาพเพื่อดึงค่า RGB</p>
+      </label>
+    </div>
+
+    <div class="two-col" id="imageAnalyzer" style="display:none;">
+
+      <!-- Canvas side -->
+      <div>
+        <div class="card" style="padding:12px;">
+          <div class="card-title" style="margin-bottom:8px;">คลิกบนภาพเพื่อดึงค่า RGB</div>
+          <div class="canvas-wrap" id="canvasWrap">
+            <canvas id="imgCanvas" onclick="samplePixel(event)"></canvas>
+            <div class="crosshair-indicator" id="crosshair"></div>
+          </div>
+        </div>
+
+        <!-- Sampled history -->
+        <div class="card" id="sampleHistCard" style="display:none;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+            <div class="card-title" style="margin-bottom:0;">ประวัติการสุ่มตัวอย่าง</div>
+            <button class="btn btn-outline" onclick="clearSamples()" style="font-size:0.78rem; padding:6px 12px;">🗑️ ล้าง</button>
+          </div>
+          <div class="sample-list" id="sampleList"></div>
+        </div>
+      </div>
+
+      <!-- RGB panel -->
+      <div>
+        <div class="card rgb-display">
+          <div class="card-title">ค่าการเรืองแสง ณ จุดที่เลือก</div>
+          <div class="color-preview" id="colorPreview">
+            <span id="hexVal">#------</span>
+          </div>
+
+          <!-- ค่าเรืองแสงหลัก (Blue channel) -->
+          <div style="background:rgba(77,166,255,0.08); border:1px solid rgba(77,166,255,0.35);
+                      border-radius:12px; padding:16px; text-align:center;">
+            <div style="font-size:0.72rem; color:var(--text-dim); font-family:var(--font-mono);
+                        letter-spacing:0.1em; margin-bottom:6px;">ค่าความเรืองแสง (Blue)</div>
+            <div id="blueMain" style="font-family:var(--font-mono); font-size:2.4rem;
+                                       font-weight:700; color:#4da6ff;
+                                       text-shadow:0 0 20px rgba(77,166,255,0.6);">—</div>
+            <div style="font-size:0.72rem; color:var(--text-dim); margin-top:4px;">
+              ช่วง 0–255 · ยิ่งสูง = เรืองแสงมาก
+            </div>
+          </div>
+
+          <!-- แถบ RGB สามช่อง (ข้อมูลเสริม) -->
+          <div style="margin-top:14px;">
+            <div style="font-size:0.72rem; color:var(--text-dim); font-family:var(--font-mono);
+                        letter-spacing:0.08em; margin-bottom:8px;">ค่า RGB อ้างอิง</div>
+            <div class="rgb-channels">
+              <div class="rgb-bar-row">
+                <span class="rgb-label r">R</span>
+                <div class="rgb-track"><div class="rgb-fill r" id="rFill" style="width:0%"></div></div>
+                <span class="rgb-val" id="rVal">—</span>
+              </div>
+              <div class="rgb-bar-row">
+                <span class="rgb-label g">G</span>
+                <div class="rgb-track"><div class="rgb-fill g" id="gFill" style="width:0%"></div></div>
+                <span class="rgb-val" id="gVal">—</span>
+              </div>
+              <div class="rgb-bar-row">
+                <span class="rgb-label b">B</span>
+                <div class="rgb-track"><div class="rgb-fill b" id="bFill" style="width:0%"></div></div>
+                <span class="rgb-val" id="bVal">—</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-cyan" onclick="addSample()" id="addSampleBtn" style="display:none; width:100%;">
+            ➕ บันทึกค่านี้
+          </button>
+        </div>
+
+        <div class="tip-box">
+          <b>💡 วิธีใช้:</b><br>
+          อัปโหลดภาพกระดาษเรืองแสงที่ถ่ายไว้ แล้วคลิกบนบริเวณที่ต้องการวัดสี<br><br>
+          <b>ค่าความเรืองแสง (Blue)</b> คือค่าหลักที่ใช้เปรียบเทียบค่ะ
+          เพราะ Carbon Dot เรืองแสงสีน้ำเงิน ยิ่งโลหะหนักมาก ค่า Blue จะยิ่ง<b>ลดลง</b>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════ TAB 3: CAMERA ═══════════ -->
+  <div id="tab-camera" class="tab-panel">
+
+    <div style="display:grid; grid-template-columns:1fr 320px; gap:20px;">
+
+      <div>
+        <div class="card" style="padding:12px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+            <div class="card-title" style="margin-bottom:0;">
+              <span id="liveBadge" style="display:none;">
+                <span class="live-dot"></span> &nbsp;LIVE
+              </span>
+              <span id="offBadge">📷 กล้องถ่ายภาพสด</span>
+            </div>
+            <div class="flex-row">
+              <button class="btn btn-green" id="startCamBtn" onclick="startCamera()">▶ เปิดกล้อง</button>
+              <button class="btn btn-red" id="stopCamBtn" onclick="stopCamera()" style="display:none;">■ ปิดกล้อง</button>
+            </div>
+          </div>
+
+          <div class="camera-wrap" id="cameraWrap" onclick="sampleCamera(event)">
+            <video id="cameraVideo" autoplay playsinline></video>
+            <canvas id="cameraCanvas"></canvas>
+            <div id="cameraOverlay" class="camera-overlay">
+              <div style="font-size:2.5rem;">📷</div>
+              <div style="font-size:0.9rem; color:var(--text-dim);">กด "เปิดกล้อง" เพื่อเริ่มต้น</div>
+            </div>
+            <!-- Reticle overlay (when camera is on) -->
+            <div class="camera-reticle" id="camReticle" style="display:none;">
+              <div class="scan-line"></div>
+              <div class="corner tl"></div>
+              <div class="corner tr"></div>
+              <div class="corner bl"></div>
+              <div class="corner br"></div>
+            </div>
+            <div class="crosshair-indicator" id="camCrosshair"></div>
+          </div>
+          <p style="font-size:0.78rem; color:var(--text-dim); margin-top:8px; text-align:center;">
+            คลิกบนภาพกล้องเพื่อดึงค่า RGB ณ จุดนั้น
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <div class="card rgb-display">
+          <div class="card-title">ค่าการเรืองแสงจากกล้อง</div>
+          <div class="color-preview" id="camColorPreview">
+            <span id="camHexVal">#------</span>
+          </div>
+
+          <!-- ค่าเรืองแสงหลัก -->
+          <div style="background:rgba(77,166,255,0.08); border:1px solid rgba(77,166,255,0.35);
+                      border-radius:12px; padding:16px; text-align:center;">
+            <div style="font-size:0.72rem; color:var(--text-dim); font-family:var(--font-mono);
+                        letter-spacing:0.1em; margin-bottom:6px;">ค่าความเรืองแสง (Blue)</div>
+            <div id="camBlueMain" style="font-family:var(--font-mono); font-size:2.4rem;
+                                          font-weight:700; color:#4da6ff;
+                                          text-shadow:0 0 20px rgba(77,166,255,0.6);">—</div>
+            <div style="font-size:0.72rem; color:var(--text-dim); margin-top:4px;">
+              ช่วง 0–255 · ยิ่งสูง = เรืองแสงมาก
+            </div>
+          </div>
+
+          <!-- แถบ RGB อ้างอิง -->
+          <div style="margin-top:14px;">
+            <div style="font-size:0.72rem; color:var(--text-dim); font-family:var(--font-mono);
+                        letter-spacing:0.08em; margin-bottom:8px;">ค่า RGB อ้างอิง</div>
+            <div class="rgb-channels">
+              <div class="rgb-bar-row">
+                <span class="rgb-label r">R</span>
+                <div class="rgb-track"><div class="rgb-fill r" id="camRFill" style="width:0%"></div></div>
+                <span class="rgb-val" id="camRVal">—</span>
+              </div>
+              <div class="rgb-bar-row">
+                <span class="rgb-label g">G</span>
+                <div class="rgb-track"><div class="rgb-fill g" id="camGFill" style="width:0%"></div></div>
+                <span class="rgb-val" id="camGVal">—</span>
+              </div>
+              <div class="rgb-bar-row">
+                <span class="rgb-label b">B</span>
+                <div class="rgb-track"><div class="rgb-fill b" id="camBFill" style="width:0%"></div></div>
+                <span class="rgb-val" id="camBVal">—</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-cyan" id="camAddBtn" onclick="addCamSample()" style="display:none; width:100%;">
+            ➕ บันทึกค่านี้
+          </button>
+        </div>
+
+        <!-- Camera samples history -->
+        <div class="card" id="camSampleHistCard" style="display:none;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+            <div class="card-title" style="margin-bottom:0;">ประวัติ</div>
+            <button class="btn btn-outline" onclick="clearCamSamples()" style="font-size:0.78rem; padding:6px 12px;">🗑️ ล้าง</button>
+          </div>
+          <div class="sample-list" id="camSampleList"></div>
+        </div>
+
+        <div class="tip-box">
+          <b>💡 วิธีใช้:</b><br>
+          เปิดกล้อง → วางกระดาษเรืองแสงในกรอบ → คลิกจุดที่ต้องการวัดสี<br><br>
+          แนะนำใช้ในห้องมืดพร้อมไฟ UV เพื่อผลที่แม่นยำที่สุด
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ═══════════════════════════════════════════════
+// PARTICLES
+// ═══════════════════════════════════════════════
+(function(){
+  const container = document.getElementById('particles');
+  for(let i = 0; i < 18; i++){
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 4 + 2;
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%;
+      animation-duration:${Math.random()*12+8}s;
+      animation-delay:${Math.random()*10}s;
+      opacity:0.5;
+      filter:blur(${Math.random()*2}px);
+    `;
+    if(Math.random() > 0.7) p.style.background = '#39ff7a';
+    container.appendChild(p);
+  }
+})();
+
+// ═══════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════
+function switchTab(name){
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════
+// TAB 1: PL SPECTRUM
+// ═══════════════════════════════════════════════
+const datasets = { fe: null, zn: null };
+let plChart = null;
+
+const PALETTE = [
+  '#aaaaaa', '#ff5e7a', '#4da6ff', '#39ff7a', '#ff9f43', '#cc44ff', '#ffd84d', '#00dcff'
+];
+
+function loadCSV(metal, input){
+  const file = input.files[0];
+  if(!file) return;
+  document.getElementById(metal+'Label').textContent = file.name;
+  document.getElementById(metal+'Zone').style.borderColor = 'var(--cyan)';
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const parsed = parseCSV(e.target.result);
+    datasets[metal] = parsed;
+    showChartCards();
+    if(document.getElementById('metalSelect').value === metal) renderChart();
+    else {
+      document.getElementById('metalSelect').value = metal;
+      renderChart();
+    }
+  };
+  reader.readAsText(file);
+}
+
+function parseCSV(text){
+  const lines = text.trim().split(/\r?\n/);
+  // Row 0: concentration headers (every 2 cols)
+  // Row 1: nm, Data, nm, Data...
+  // Row 2+: data
+  const headerRow = lines[0].split(',');
+  const labels = [];
+  for(let c = 0; c < headerRow.length; c += 2){
+    let lbl = headerRow[c].trim();
+    if(!lbl && c > 0) lbl = headerRow[c-2].trim();
+    labels.push(lbl || 'series'+(c/2));
+  }
+
+  const result = [];
+  const numCols = Math.floor(headerRow.length / 2);
+
+  for(let s = 0; s < numCols; s++){
+    result.push({ label: labels[s], nm: [], data: [] });
+  }
+
+  for(let r = 2; r < lines.length; r++){
+    const cols = lines[r].split(',');
+    for(let s = 0; s < numCols; s++){
+      const nm = parseFloat(cols[s*2]);
+      const val = parseFloat(cols[s*2+1]);
+      if(!isNaN(nm) && !isNaN(val)){
+        result[s].nm.push(nm);
+        result[s].data.push(val);
+      }
+    }
+  }
+  return result;
+}
+
+function renderChart(){
+  const metal = document.getElementById('metalSelect').value;
+  const minNm = parseInt(document.getElementById('minNmInput')?.value) || 290;
+  const raw = datasets[metal];
+  if(!raw) return;
+
+  // Build chart datasets
+  const chartData = raw.map((s, i) => ({
+    label: s.label === 'contral' ? 'Control' : s.label + ' µM',
+    data: s.nm.map((x, j) => ({ x, y: s.data[j] })),
+    borderColor: PALETTE[i] || '#ffffff',
+    backgroundColor: 'transparent',
+    borderWidth: s.label === 'contral' ? 2.5 : 1.5,
+    pointRadius: 0,
+    tension: 0.3,
+  }));
+
+  // X labels (use first series nm)
+  const labels = raw[0].nm;
+
+  if(plChart) plChart.destroy();
+  const ctx = document.getElementById('plChart').getContext('2d');
+  plChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: chartData },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: {
+          type: 'linear',
+          title: { display: true, text: 'Wavelength (nm)', color: '#6888aa', font: { family: 'Space Mono', size: 11 } },
+          ticks: { color: '#6888aa', font: { family: 'Space Mono', size: 10 }, maxTicksLimit: 10 },
+          grid: { color: 'rgba(0,220,255,0.06)' },
+        },
+        y: {
+          title: { display: true, text: 'Intensity (a.u.)', color: '#6888aa', font: { family: 'Space Mono', size: 11 } },
+          ticks: { color: '#6888aa', font: { family: 'Space Mono', size: 10 } },
+          grid: { color: 'rgba(0,220,255,0.06)' },
+        }
+      },
+      plugins: {
+        legend: {
+          labels: { color: '#cce8ff', font: { family: 'Sarabun', size: 12 }, boxWidth: 20, padding: 16 }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(8,15,30,0.95)',
+          borderColor: 'rgba(0,220,255,0.3)',
+          borderWidth: 1,
+          titleColor: '#00dcff',
+          bodyColor: '#cce8ff',
+          callbacks: {
+            title: items => `λ = ${items[0].label} nm`,
+            label: item => ` ${item.dataset.label}: ${item.raw.y.toFixed(1)} a.u.`,
+          }
+        }
+      }
+    }
+  });
+
+  buildStatsAndTable(raw, metal, minNm);
+}
+
+function getPeak(series, minNm){
+  // ค่าพีคจริงของการเรืองแสง Carbon Dot อยู่ที่ ~300-350nm
+  // ต้องข้าม Rayleigh scatter peak ที่ ~230-285nm ออกก่อน
+  // minNm คือช่วงต่ำสุดที่จะเริ่มหาพีค (default 290nm)
+  const startNm = minNm || 290;
+  let max = -Infinity, maxNm = 0;
+  for(let i = 0; i < series.data.length; i++){
+    if(series.nm[i] >= startNm && series.data[i] > max){
+      max = series.data[i];
+      maxNm = series.nm[i];
+    }
+  }
+  // ถ้าไม่เจอค่าในช่วงนั้น fallback ทั้งหมด
+  if(max === -Infinity){
+    for(let i = 0; i < series.data.length; i++){
+      if(series.data[i] > max){ max = series.data[i]; maxNm = series.nm[i]; }
+    }
+  }
+  return { intensity: max, wavelength: maxNm };
+}
+
+function buildStatsAndTable(raw, metal, minNm){
+  const nm = minNm || 290;
+  // ใช้ minNm เดียวกันทุกเส้น เพื่อให้เทียบกันได้
+  const controlPeak = getPeak(raw[0], nm).intensity;
+  const statsRow = document.getElementById('statsRow');
+  const tableBody = document.getElementById('tableBody');
+  statsRow.innerHTML = '';
+  tableBody.innerHTML = '';
+
+  raw.forEach((s, i) => {
+    const pk = getPeak(s, nm);
+    const quench = i === 0 ? 0 : ((controlPeak - pk.intensity) / controlPeak * 100);
+    const isControl = s.label === 'contral';
+    const lbl = isControl ? 'Control' : s.label + ' µM';
+    const color = PALETTE[i] || '#fff';
+    const qColor = quench > 20 ? 'var(--red)' : quench > 10 ? 'var(--gold)' : 'var(--green)';
+
+    // Stat box
+    const box = document.createElement('div');
+    box.className = 'stat-box';
+    box.style.borderTopColor = color;
+    box.style.borderTopWidth = '3px';
+    box.innerHTML = `
+      <div class="conc">${lbl}</div>
+      <div class="peak" style="color:${color}">${pk.intensity.toFixed(0)}</div>
+      <div style="font-size:0.7rem; color:var(--text-dim);">${pk.wavelength} nm</div>
+      ${!isControl ? `<div class="quench" style="background:${qColor}22; color:${qColor}; border:1px solid ${qColor}44; margin-top:6px;">−${quench.toFixed(1)}%</div>` : '<div style="height:20px;"></div>'}
+    `;
+    statsRow.appendChild(box);
+
+    // Table row
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span style="color:${color}; font-weight:600;">${lbl}</span></td>
+      <td style="font-family:var(--font-mono);">${pk.intensity.toFixed(2)}</td>
+      <td style="font-family:var(--font-mono);">${pk.wavelength} nm</td>
+      <td style="font-family:var(--font-mono); color:${isControl ? 'var(--text-dim)' : qColor}">
+        ${isControl ? '—' : quench.toFixed(2) + '%'}
+      </td>
+      <td>
+        ${isControl ? '<span style="color:var(--text-dim); font-size:0.78rem;">baseline</span>' : `
+          <div class="quench-bar-wrap">
+            <div class="quench-bar" style="width:${Math.min(quench*2.5, 160)}px; background:linear-gradient(90deg,${qColor},${qColor}88);"></div>
+            <span style="font-size:0.78rem; color:${qColor};">${quench.toFixed(1)}%</span>
+          </div>`}
+      </td>
+    `;
+    tableBody.appendChild(tr);
+  });
+}
+
+function showChartCards(){
+  ['chartCard','statsCard','tableCard'].forEach(id => {
+    document.getElementById(id).style.display = 'block';
+  });
+}
+
+function exportChart(){
+  const canvas = document.getElementById('plChart');
+  const link = document.createElement('a');
+  link.download = 'PL_Spectrum.png';
+  link.href = canvas.toDataURL();
+  link.click();
+}
+
+// ═══════════════════════════════════════════════
+// TAB 2: IMAGE RGB
+// ═══════════════════════════════════════════════
+let imgCanvas, imgCtx, currentSample = null, sampleHistory = [];
+
+function loadImage(input){
+  const file = input.files[0];
+  if(!file) return;
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = () => {
+    document.getElementById('imgZone').style.display = 'none';
+    document.getElementById('imageAnalyzer').style.display = 'grid';
+
+    imgCanvas = document.getElementById('imgCanvas');
+    imgCtx = imgCanvas.getContext('2d');
+
+    // Fit to container (~700px max)
+    const maxW = 680, maxH = 500;
+    let w = img.width, h = img.height;
+    if(w > maxW){ h = h*(maxW/w); w = maxW; }
+    if(h > maxH){ w = w*(maxH/h); h = maxH; }
+    imgCanvas.width = w; imgCanvas.height = h;
+    imgCtx.drawImage(img, 0, 0, w, h);
+  };
+  img.src = url;
+}
+
+function samplePixel(event){
+  if(!imgCanvas) return;
+  const rect = imgCanvas.getBoundingClientRect();
+  const scaleX = imgCanvas.width / rect.width;
+  const scaleY = imgCanvas.height / rect.height;
+  const px = (event.clientX - rect.left) * scaleX;
+  const py = (event.clientY - rect.top) * scaleY;
+
+  // Average 5x5
+  const region = imgCtx.getImageData(Math.max(0,px-2), Math.max(0,py-2), 5, 5);
+  let r=0, g=0, b=0, count=0;
+  for(let i = 0; i < region.data.length; i+=4){
+    r += region.data[i]; g += region.data[i+1]; b += region.data[i+2]; count++;
+  }
+  r = Math.round(r/count); g = Math.round(g/count); b = Math.round(b/count);
+
+  currentSample = {r, g, b, x: px.toFixed(0), y: py.toFixed(0)};
+  updateRGBDisplay(r, g, b, 'colorPreview','hexVal','rFill','gFill','bFill','rVal','gVal','bVal','blueMain');
+  document.getElementById('addSampleBtn').style.display = 'flex';
+
+  // Move crosshair
+  const ch = document.getElementById('crosshair');
+  ch.style.display = 'block';
+  ch.style.left = (event.clientX - rect.left) + 'px';
+  ch.style.top = (event.clientY - rect.top) + 'px';
+}
+
+function updateRGBDisplay(r, g, b, previewId, hexId, rFillId, gFillId, bFillId, rValId, gValId, bValId, blueMainId){
+  const hex = '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('');
+  document.getElementById(previewId).style.background = hex;
+  document.getElementById(hexId).textContent = hex.toUpperCase();
+  document.getElementById(rFillId).style.width = (r/255*100)+'%';
+  document.getElementById(gFillId).style.width = (g/255*100)+'%';
+  document.getElementById(bFillId).style.width = (b/255*100)+'%';
+  document.getElementById(rValId).textContent = r;
+  document.getElementById(gValId).textContent = g;
+  document.getElementById(bValId).textContent = b;
+  // ค่าหลักคือ Blue channel เพราะ Carbon Dot เรืองแสงสีน้ำเงิน
+  if(blueMainId) document.getElementById(blueMainId).textContent = b;
+}
+
+function addSample(){
+  if(!currentSample) return;
+  sampleHistory.push({...currentSample});
+  renderSampleHistory();
+  document.getElementById('sampleHistCard').style.display = 'block';
+}
+
+function renderSampleHistory(){
+  const list = document.getElementById('sampleList');
+  list.innerHTML = sampleHistory.map((s, i) => {
+    const hex = '#' + [s.r,s.g,s.b].map(v => v.toString(16).padStart(2,'0')).join('');
+    return `<div class="sample-item">
+      <div class="swatch" style="background:${hex}"></div>
+      <div>
+        <div style="font-size:0.8rem; color:var(--text);">#${i+1} · (${s.x}, ${s.y})</div>
+        <div class="sample-rgb">R:${s.r} G:${s.g} B:${s.b} · ${hex.toUpperCase()}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function clearSamples(){ sampleHistory = []; renderSampleHistory(); }
+
+// ═══════════════════════════════════════════════
+// TAB 3: CAMERA
+// ═══════════════════════════════════════════════
+let camStream = null, camSamples = [], camCurrentSample = null;
+
+async function startCamera(){
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+    const video = document.getElementById('cameraVideo');
+    video.srcObject = camStream;
+    document.getElementById('cameraOverlay').style.display = 'none';
+    document.getElementById('camReticle').style.display = 'block';
+    document.getElementById('startCamBtn').style.display = 'none';
+    document.getElementById('stopCamBtn').style.display = 'inline-flex';
+    document.getElementById('liveBadge').style.display = 'inline-flex';
+    document.getElementById('offBadge').style.display = 'none';
+  } catch(err){
+    alert('ไม่สามารถเข้าถึงกล้องได้: ' + err.message + '\n\nลองเปิดเว็บผ่าน localhost หรือ https นะคะ');
+  }
+}
+
+function stopCamera(){
+  if(camStream) camStream.getTracks().forEach(t => t.stop());
+  camStream = null;
+  document.getElementById('cameraVideo').srcObject = null;
+  document.getElementById('cameraOverlay').style.display = 'flex';
+  document.getElementById('camReticle').style.display = 'none';
+  document.getElementById('startCamBtn').style.display = 'inline-flex';
+  document.getElementById('stopCamBtn').style.display = 'none';
+  document.getElementById('liveBadge').style.display = 'none';
+  document.getElementById('offBadge').style.display = 'inline';
+}
+
+function sampleCamera(event){
+  if(!camStream) return;
+  const video = document.getElementById('cameraVideo');
+  const canvas = document.getElementById('cameraCanvas');
+  const wrap = document.getElementById('cameraWrap');
+  const rect = wrap.getBoundingClientRect();
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0);
+
+  const scaleX = video.videoWidth / rect.width;
+  const scaleY = video.videoHeight / rect.height;
+  const px = (event.clientX - rect.left) * scaleX;
+  const py = (event.clientY - rect.top) * scaleY;
+
+  const region = ctx.getImageData(Math.max(0,px-2), Math.max(0,py-2), 5, 5);
+  let r=0, g=0, b=0, count=0;
+  for(let i=0; i<region.data.length; i+=4){
+    r+=region.data[i]; g+=region.data[i+1]; b+=region.data[i+2]; count++;
+  }
+  r=Math.round(r/count); g=Math.round(g/count); b=Math.round(b/count);
+
+  camCurrentSample = {r, g, b};
+  updateRGBDisplay(r,g,b,'camColorPreview','camHexVal','camRFill','camGFill','camBFill','camRVal','camGVal','camBVal','camBlueMain');
+  document.getElementById('camAddBtn').style.display = 'flex';
+
+  // Crosshair
+  const ch = document.getElementById('camCrosshair');
+  ch.style.display = 'block';
+  ch.style.left = (event.clientX - rect.left) + 'px';
+  ch.style.top = (event.clientY - rect.top) + 'px';
+}
+
+function addCamSample(){
+  if(!camCurrentSample) return;
+  camSamples.push({...camCurrentSample});
+  renderCamSamples();
+  document.getElementById('camSampleHistCard').style.display = 'block';
+}
+
+function renderCamSamples(){
+  const list = document.getElementById('camSampleList');
+  list.innerHTML = camSamples.map((s,i) => {
+    const hex = '#' + [s.r,s.g,s.b].map(v => v.toString(16).padStart(2,'0')).join('');
+    return `<div class="sample-item">
+      <div class="swatch" style="background:${hex}"></div>
+      <div>
+        <div style="font-size:0.8rem; color:var(--text);">#${i+1} (กล้อง)</div>
+        <div class="sample-rgb">R:${s.r} G:${s.g} B:${s.b} · ${hex.toUpperCase()}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function clearCamSamples(){ camSamples = []; renderCamSamples(); }
+</script>
+</body>
+</html>
