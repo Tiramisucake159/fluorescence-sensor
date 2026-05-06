@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Fluorescence Sensor Analyzer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f0f2f5; --surface:#fff; --surface2:#f7f8fa;
+  --border:#d8dde5; --border-light:#eaecf0;
+  --navy:#1b2f4e; --navy-mid:#2c4a72;
+  --blue:#1e6fd9; --blue-light:#e8f0fb;
+  --green:#1a8a5a; --green-light:#e6f5ee;
+  --red:#c0392b; --amber:#b86a00; --amber-light:#fef3e2;
+  --text:#1b2533; --text-mid:#4a5568; --text-dim:#8896a8;
+  --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans Thai',sans-serif;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shadow:0 2px 8px rgba(0,0,0,.08),0 1px 3px rgba(0,0,0,.05);
+  --radius:10px; --radius-sm:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;font-size:15px;line-height:1.5}
+header{background:var(--navy);padding:0 20px;display:flex;align-items:center;gap:14px;height:60px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.hico{width:36px;height:36px;background:rgba(255,255,255,.12);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.htxt h1{font-family:var(--mono);font-size:.82rem;font-weight:600;color:#fff;letter-spacing:.02em}
+.htxt p{font-size:.7rem;color:rgba(255,255,255,.5);font-family:var(--mono);letter-spacing:.03em}
+.hbadge{margin-left:auto;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.75);font-family:var(--mono);font-size:.65rem;padding:3px 9px;border-radius:20px;letter-spacing:.08em;white-space:nowrap}
+.tab-bar{background:var(--surface);border-bottom:1px solid var(--border);display:flex;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab-btn{padding:14px 18px 13px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-dim);font-family:var(--sans);font-size:.88rem;font-weight:500;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:7px;margin-bottom:-1px;transition:color .15s,border-color .15s}
+.tab-btn:hover{color:var(--navy-mid)}
+.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
+main{max-width:840px;margin:0 auto;padding:20px 16px 40px}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:16px}
+.card-hd{padding:13px 18px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:10px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0}
+.card-title{font-size:.78rem;font-weight:600;color:var(--navy);text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono)}
+.card-body{padding:18px}
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:36px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface2);display:block}
+.upload-zone:hover{border-color:var(--blue);background:var(--blue-light)}
+.upload-zone input{display:none}
+.upload-icon{font-size:2.2rem;margin-bottom:10px}
+.upload-zone h3{font-size:1rem;font-weight:600;color:var(--navy);margin-bottom:4px}
+.upload-zone p{font-size:.82rem;color:var(--text-dim)}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:var(--radius-sm);font-family:var(--sans);font-size:.88rem;font-weight:600;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--blue);color:#fff;box-shadow:var(--shadow-sm)}
+.btn-primary:hover{background:#1860c0}
+.btn-primary:active{transform:scale(.98)}
+.btn-success{background:var(--green);color:#fff}
+.btn-success:hover{background:#157a4f}
+.btn-danger{background:var(--red);color:#fff}
+.btn-outline{background:var(--surface);color:var(--navy-mid);border:1px solid var(--border);box-shadow:var(--shadow-sm)}
+.btn-outline:hover{background:var(--surface2)}
+.btn-full{width:100%;justify-content:center}
+.agrid{display:grid;grid-template-columns:1fr 270px;gap:16px}
+@media(max-width:640px){.agrid{grid-template-columns:1fr}}
+.canvas-cont{position:relative;background:#1a1a1a;border-radius:var(--radius-sm);overflow:hidden;cursor:crosshair;min-height:260px;display:flex;align-items:center;justify-content:center}
+.canvas-cont canvas{display:block;max-width:100%}
+.cph{text-align:center;color:#666;font-size:.85rem}
+.cph span{display:block;font-size:2rem;margin-bottom:8px}
+.xhair{position:absolute;width:18px;height:18px;border:2px solid #fff;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;display:none;box-shadow:0 0 0 1px rgba(0,0,0,.5)}
+.readout{display:flex;flex-direction:column;gap:12px}
+.swatch{height:70px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;transition:background .25s}
+.swatch span{font-family:var(--mono);font-size:.8rem;color:var(--text-dim)}
+.blue-box{background:var(--blue-light);border:1px solid #b8d0f5;border-radius:var(--radius-sm);padding:14px 16px;text-align:center}
+.blue-lbl{font-family:var(--mono);font-size:.65rem;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px}
+.blue-val{font-family:var(--mono);font-size:2.6rem;font-weight:600;color:var(--navy);line-height:1}
+.blue-sub{font-size:.72rem;color:var(--text-dim);margin-top:4px}
+.rgb-lbl{font-family:var(--mono);font-size:.65rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.rgb-rows{display:flex;flex-direction:column;gap:6px}
+.rgb-row{display:flex;align-items:center;gap:8px}
+.rgb-ch{font-family:var(--mono);font-size:.72rem;font-weight:600;width:12px;flex-shrink:0}
+.rgb-ch.r{color:#c0392b}.rgb-ch.g{color:#1a8a5a}.rgb-ch.b{color:#1e6fd9}
+.rgb-track{flex:1;height:7px;background:var(--border-light);border-radius:4px;overflow:hidden}
+.rgb-fill{height:100%;border-radius:4px;transition:width .3s}
+.rgb-fill.r{background:#e74c3c}.rgb-fill.g{background:#27ae60}.rgb-fill.b{background:#2980b9}
+.rgb-num{font-family:var(--mono);font-size:.75rem;font-weight:500;width:28px;text-align:right;color:var(--text-mid);flex-shrink:0}
+.spec-wrap{position:relative;height:190px;background:var(--surface2);border-radius:var(--radius-sm);overflow:hidden}
+.spec-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:var(--text-dim);font-size:.82rem}
+.spec-ph span{font-size:1.5rem}
+.cam-area{position:relative;background:#111;border-radius:var(--radius-sm);overflow:hidden;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center}
+.cam-area video{width:100%;height:100%;object-fit:cover;display:block}
+.cam-ph{text-align:center;color:#666;font-size:.85rem}
+.cam-ph span{display:block;font-size:2.5rem;margin-bottom:8px}
+.frozen-cv{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;display:none;object-fit:cover}
+.live-badge{display:inline-flex;align-items:center;gap:5px;background:#e8f5e9;color:var(--green);border:1px solid #a5d6a7;border-radius:20px;padding:3px 10px;font-family:var(--mono);font-size:.68rem;font-weight:600;letter-spacing:.08em}
+.live-dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:blink 1.2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.frozen-badge{display:inline-flex;align-items:center;gap:5px;background:var(--amber-light);color:var(--amber);border:1px solid #fcd68a;border-radius:20px;padding:3px 10px;font-family:var(--mono);font-size:.68rem;font-weight:600;letter-spacing:.08em}
+.info-box{background:var(--blue-light);border:1px solid #c5d9f5;border-radius:var(--radius-sm);padding:12px 14px;font-size:.82rem;color:var(--navy-mid);line-height:1.6}
+.info-box b{color:var(--blue)}
+.slist{display:flex;flex-direction:column;gap:6px}
+.sitem{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border-light);font-size:.82rem}
+.sswatch{width:24px;height:24px;border-radius:4px;border:1px solid var(--border);flex-shrink:0}
+.shex{font-family:var(--mono);font-size:.72rem;color:var(--text-dim)}
+.sblue{font-family:var(--mono);font-size:.9rem;font-weight:600;color:var(--blue)}
+.flex-c{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mt-12{margin-top:12px}.mt-16{margin-top:16px}
+.fb{display:flex;align-items:center;justify-content:space-between}
+</style>
+</head>
+<body>
+<header>
+  <div class="hico">🔬</div>
+  <div class="htxt">
+    <h1>FLUORESCENCE SENSOR ANALYZER</h1>
+    <p>Carbon Dot · Heavy Metal Detection</p>
+  </div>
+  <div class="hbadge">v2.0</div>
+</header>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('image',this)"><span>🖼</span> อัปโหลดรูปภาพ</button>
+  <button class="tab-btn" onclick="switchTab('camera',this)"><span>📷</span> ถ่ายภาพสด</button>
+</div>
+<main>
+
+<!-- TAB IMAGE -->
+<div id="tab-image" class="tab-panel active">
+  <div class="card" id="uploadCard">
+    <div class="card-hd"><div class="dot"></div><div class="card-title">อัปโหลดภาพกระดาษเรืองแสง</div></div>
+    <div class="card-body">
+      <label class="upload-zone" id="uploadZone">
+        <input type="file" id="imgFile" accept="image/*" onchange="loadImage(this)">
+        <div class="upload-icon">📂</div>
+        <h3>คลิกหรือลากภาพมาวาง</h3>
+        <p>รองรับ JPG, PNG, WEBP · จิ้มบนภาพเพื่อวัดค่า</p>
+      </label>
+    </div>
+  </div>
+  <div id="imgAnalysis" style="display:none">
+    <div class="card">
+      <div class="card-hd"><div class="dot"></div><div class="card-title">จิ้มบนภาพเพื่ออ่านค่าสี</div></div>
+      <div class="card-body">
+        <div class="agrid">
+          <div>
+            <div class="canvas-cont" id="imgCW">
+              <canvas id="imgCanvas" onclick="sampleImg(event)"></canvas>
+              <div id="imgXH" class="xhair"></div>
+            </div>
+            <div class="fb mt-12">
+              <span style="font-size:.78rem;color:var(--text-dim)">จิ้มที่จุดกระดาษที่ต้องการวัด</span>
+              <button class="btn btn-outline" onclick="resetImg()" style="font-size:.78rem;padding:6px 12px">🔄 เปลี่ยนรูป</button>
+            </div>
+          </div>
+          <div class="readout">
+            <div class="swatch" id="imgSwatch"><span id="imgHex">#------</span></div>
+            <div class="blue-box">
+              <div class="blue-lbl">ค่าความเรืองแสง (Blue)</div>
+              <div class="blue-val" id="imgBlue">—</div>
+              <div class="blue-sub">ช่วง 0–255 · ยิ่งสูง = เรืองแสงมาก</div>
+            </div>
+            <div>
+              <div class="rgb-lbl">RGB อ้างอิง</div>
+              <div class="rgb-rows">
+                <div class="rgb-row"><span class="rgb-ch r">R</span><div class="rgb-track"><div class="rgb-fill r" id="imgRf" style="width:0%"></div></div><span class="rgb-num" id="imgRv">—</span></div>
+                <div class="rgb-row"><span class="rgb-ch g">G</span><div class="rgb-track"><div class="rgb-fill g" id="imgGf" style="width:0%"></div></div><span class="rgb-num" id="imgGv">—</span></div>
+                <div class="rgb-row"><span class="rgb-ch b">B</span><div class="rgb-track"><div class="rgb-fill b" id="imgBf" style="width:0%"></div></div><span class="rgb-num" id="imgBv">—</span></div>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-full" id="imgSaveBtn" onclick="saveImg()" style="display:none">＋ บันทึกค่านี้</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><div class="dot" style="background:var(--green)"></div><div class="card-title">Pseudo Emission Spectrum</div><span style="margin-left:auto;font-size:.7rem;color:var(--text-dim);font-family:var(--mono)">RGB → Wavelength map</span></div>
+      <div class="card-body">
+        <div class="spec-wrap"><div class="spec-ph" id="imgSPH"><span>📊</span>จิ้มบนภาพเพื่อดูกราฟ</div><canvas id="imgSC" style="display:none"></canvas></div>
+        <div style="font-size:.72rem;color:var(--text-dim);margin-top:8px;font-family:var(--mono);line-height:1.6">B channel ≈ 400–500 nm · G channel ≈ 500–570 nm · R channel ≈ 570–700 nm</div>
+      </div>
+    </div>
+    <div class="card" id="imgHistCard" style="display:none">
+      <div class="card-hd"><div class="dot" style="background:var(--amber)"></div><div class="card-title">ประวัติการวัด</div><button class="btn btn-outline" onclick="clearImgS()" style="margin-left:auto;font-size:.75rem;padding:5px 10px">ล้าง</button></div>
+      <div class="card-body"><div class="slist" id="imgSL"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB CAMERA -->
+<div id="tab-camera" class="tab-panel">
+  <div class="card">
+    <div class="card-hd">
+      <div class="dot" style="background:var(--green)"></div>
+      <div class="card-title">ถ่ายภาพสด</div>
+      <div id="camBadge" style="margin-left:auto">
+        <span id="liveBadge" style="display:none" class="live-badge"><span class="live-dot"></span>LIVE</span>
+        <span id="frozenBadge" style="display:none" class="frozen-badge">📌 FROZEN</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="cam-area" id="camArea">
+        <video id="camVid" autoplay playsinline></video>
+        <canvas id="camCC"></canvas>
+        <canvas id="frozenCV" class="frozen-cv" onclick="sampleFrozen(event)"></canvas>
+        <div id="camPH" class="cam-ph"><span>📷</span>กด "เปิดกล้อง" เพื่อเริ่มต้น</div>
+        <div id="camXH" class="xhair"></div>
+      </div>
+      <div class="flex-c mt-12">
+        <button class="btn btn-success" id="startBtn" onclick="startCam()">▶ เปิดกล้อง</button>
+        <button class="btn btn-primary" id="capBtn" onclick="captureFrame()" style="display:none">📸 ถ่ายภาพ</button>
+        <button class="btn btn-outline" id="resumeBtn" onclick="resumeLive()" style="display:none">🎥 กลับ Live</button>
+        <button class="btn btn-danger" id="stopBtn" onclick="stopCam()" style="display:none">■ ปิดกล้อง</button>
+      </div>
+      <div class="info-box mt-12" id="camHint">กด <b>เปิดกล้อง</b> แล้วเล็งกระดาษ → กด <b>ถ่ายภาพ</b> เพื่อค้างภาพ → <b>จิ้มจุด</b>ที่ต้องการวัดสี</div>
+    </div>
+  </div>
+  <div id="camAnalysis" style="display:none">
+    <div class="agrid">
+      <div class="card">
+        <div class="card-hd"><div class="dot"></div><div class="card-title">ค่าที่วัดได้</div></div>
+        <div class="card-body readout">
+          <div class="swatch" id="camSwatch"><span id="camHex">#------</span></div>
+          <div class="blue-box">
+            <div class="blue-lbl">ค่าความเรืองแสง (Blue)</div>
+            <div class="blue-val" id="camBlue">—</div>
+            <div class="blue-sub">ช่วง 0–255 · ยิ่งสูง = เรืองแสงมาก</div>
+          </div>
+          <div>
+            <div class="rgb-lbl">RGB อ้างอิง</div>
+            <div class="rgb-rows">
+              <div class="rgb-row"><span class="rgb-ch r">R</span><div class="rgb-track"><div class="rgb-fill r" id="camRf" style="width:0%"></div></div><span class="rgb-num" id="camRv">—</span></div>
+              <div class="rgb-row"><span class="rgb-ch g">G</span><div class="rgb-track"><div class="rgb-fill g" id="camGf" style="width:0%"></div></div><span class="rgb-num" id="camGv">—</span></div>
+              <div class="rgb-row"><span class="rgb-ch b">B</span><div class="rgb-track"><div class="rgb-fill b" id="camBf" style="width:0%"></div></div><span class="rgb-num" id="camBv">—</span></div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-full" id="camSaveBtn" onclick="saveCam()" style="display:none">＋ บันทึกค่านี้</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div class="dot" style="background:var(--green)"></div><div class="card-title">Emission Spectrum</div></div>
+        <div class="card-body">
+          <div class="spec-wrap"><div class="spec-ph" id="camSPH"><span>📊</span>จิ้มบนภาพค้างเพื่อดูกราฟ</div><canvas id="camSC" style="display:none"></canvas></div>
+        </div>
+      </div>
+    </div>
+    <div class="card" id="camHistCard" style="display:none">
+      <div class="card-hd"><div class="dot" style="background:var(--amber)"></div><div class="card-title">ประวัติการวัด</div><button class="btn btn-outline" onclick="clearCamS()" style="margin-left:auto;font-size:.75rem;padding:5px 10px">ล้าง</button></div>
+      <div class="card-body"><div class="slist" id="camSL"></div></div>
+    </div>
+  </div>
+</div>
+</main>
+<script>
+function switchTab(n,b){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById('tab-'+n).classList.add('active');
+  b.classList.add('active');
+}
+const iS={},cS={};
+function drawSpec(r,g,b,cid,pid,ref){
+  document.getElementById(pid).style.display='none';
+  const cv=document.getElementById(cid);
+  cv.style.display='block';
+  const labels=[],data=[];
+  for(let nm=380;nm<=700;nm+=5){
+    labels.push(nm);
+    data.push(+(b*Math.exp(-Math.pow(nm-455,2)/(2*35*35))+g*Math.exp(-Math.pow(nm-540,2)/(2*30*30))+r*Math.exp(-Math.pow(nm-650,2)/(2*30*30))).toFixed(2));
+  }
+  if(ref.ch)ref.ch.destroy();
+  const ctx=cv.getContext('2d');
+  ref.ch=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[{data,borderWidth:2,pointRadius:0,tension:.4,fill:true,
+      borderColor:(c)=>{const ch=c.chart,{ctx:x,chartArea:a}=ch;if(!a)return'#1e6fd9';const g2=x.createLinearGradient(a.left,0,a.right,0);g2.addColorStop(0,'rgb(120,0,180)');g2.addColorStop(.15,'rgb(60,60,255)');g2.addColorStop(.35,'rgb(0,200,255)');g2.addColorStop(.55,'rgb(0,200,60)');g2.addColorStop(.75,'rgb(220,180,0)');g2.addColorStop(1,'rgb(220,40,0)');return g2;},
+      backgroundColor:(c)=>{const ch=c.chart,{ctx:x,chartArea:a}=ch;if(!a)return'rgba(30,111,217,.2)';const g2=x.createLinearGradient(a.left,0,a.right,0);g2.addColorStop(0,'rgba(120,0,180,.2)');g2.addColorStop(.35,'rgba(0,200,255,.2)');g2.addColorStop(.55,'rgba(0,200,60,.2)');g2.addColorStop(1,'rgba(220,40,0,.2)');return g2;}
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:350},
+      scales:{
+        x:{title:{display:true,text:'Wavelength (nm)',color:'#8896a8',font:{family:'IBM Plex Mono',size:10}},ticks:{color:'#8896a8',font:{family:'IBM Plex Mono',size:9},maxTicksLimit:8},grid:{color:'#eaecf0'}},
+        y:{title:{display:true,text:'Intensity (a.u.)',color:'#8896a8',font:{family:'IBM Plex Mono',size:10}},ticks:{color:'#8896a8',font:{family:'IBM Plex Mono',size:9}},grid:{color:'#eaecf0'},min:0}
+      },
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(27,47,78,.95)',titleColor:'#fff',bodyColor:'#ccd8e8',callbacks:{title:i=>`λ = ${i[0].label} nm`,label:i=>` Intensity: ${i.raw.toFixed(1)}`}}}
+    }
+  });
+}
+function upd(r,g,b,p){
+  const h='#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();
+  document.getElementById(p+'Swatch').style.background=h;
+  document.getElementById(p+'Hex').textContent=h;
+  document.getElementById(p+'Blue').textContent=b;
+  document.getElementById(p+'Rf').style.width=(r/255*100)+'%';
+  document.getElementById(p+'Gf').style.width=(g/255*100)+'%';
+  document.getElementById(p+'Bf').style.width=(b/255*100)+'%';
+  document.getElementById(p+'Rv').textContent=r;
+  document.getElementById(p+'Gv').textContent=g;
+  document.getElementById(p+'Bv').textContent=b;
+}
+function px(ctx,x,y){
+  const d=ctx.getImageData(Math.max(0,x-2),Math.max(0,y-2),5,5).data;
+  let r=0,g=0,b=0,n=0;
+  for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];n++;}
+  return{r:Math.round(r/n),g:Math.round(g/n),b:Math.round(b/n)};
+}
+// IMAGE
+let iCanvas,iCtx,iRGB=null,iSamples=[];
+function loadImage(inp){
+  const f=inp.files[0];if(!f)return;
+  const u=URL.createObjectURL(f),img=new Image();
+  img.onload=()=>{
+    document.getElementById('uploadCard').style.display='none';
+    document.getElementById('imgAnalysis').style.display='block';
+    iCanvas=document.getElementById('imgCanvas');
+    iCtx=iCanvas.getContext('2d');
+    const mW=600,mH=460;let w=img.width,h=img.height;
+    if(w>mW){h=h*(mW/w);w=mW;}if(h>mH){w=w*(mH/h);h=mH;}
+    iCanvas.width=Math.round(w);iCanvas.height=Math.round(h);
+    iCtx.drawImage(img,0,0,iCanvas.width,iCanvas.height);
+  };img.src=u;
+}
+function sampleImg(e){
+  if(!iCanvas)return;
+  const r=iCanvas.getBoundingClientRect(),sx=iCanvas.width/r.width,sy=iCanvas.height/r.height;
+  const {r:rv,g:gv,b:bv}=px(iCtx,(e.clientX-r.left)*sx,(e.clientY-r.top)*sy);
+  iRGB={r:rv,g:gv,b:bv};
+  upd(rv,gv,bv,'img');
+  document.getElementById('imgSaveBtn').style.display='flex';
+  const xh=document.getElementById('imgXH');
+  xh.style.display='block';xh.style.left=(e.clientX-r.left)+'px';xh.style.top=(e.clientY-r.top)+'px';
+  drawSpec(rv,gv,bv,'imgSC','imgSPH',iS);
+}
+function saveImg(){if(!iRGB)return;iSamples.push({...iRGB,t:new Date().toLocaleTimeString('th')});renderS('img',iSamples);document.getElementById('imgHistCard').style.display='block';}
+function clearImgS(){iSamples=[];renderS('img',iSamples);}
+function resetImg(){document.getElementById('uploadCard').style.display='block';document.getElementById('imgAnalysis').style.display='none';document.getElementById('imgFile').value='';}
+// CAMERA
+let stream=null,cRGB=null,cSamples=[],frozen=false;
+const vid=document.getElementById('camVid'),fCV=document.getElementById('frozenCV'),fCtx=fCV.getContext('2d');
+async function startCam(){
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280}},audio:false});
+    vid.srcObject=stream;
+    document.getElementById('camPH').style.display='none';
+    document.getElementById('startBtn').style.display='none';
+    document.getElementById('capBtn').style.display='inline-flex';
+    document.getElementById('stopBtn').style.display='inline-flex';
+    document.getElementById('liveBadge').style.display='inline-flex';
+    document.getElementById('camHint').innerHTML='เล็งกระดาษให้พร้อมแล้วกด <b>ถ่ายภาพ</b> เพื่อค้างภาพ จากนั้น<b>จิ้มจุด</b>ที่ต้องการวัด';
+    frozen=false;
+  }catch(e){alert('ไม่สามารถเข้าถึงกล้องได้ค่ะ\n'+e.message+'\n\nต้องเปิดผ่าน https หรือ localhost');}
+}
+function captureFrame(){
+  fCV.width=vid.videoWidth;fCV.height=vid.videoHeight;
+  fCtx.drawImage(vid,0,0);
+  fCV.style.display='block';frozen=true;
+  document.getElementById('liveBadge').style.display='none';
+  document.getElementById('frozenBadge').style.display='inline-flex';
+  document.getElementById('capBtn').style.display='none';
+  document.getElementById('resumeBtn').style.display='inline-flex';
+  document.getElementById('camHint').innerHTML='📌 ภาพค้างแล้ว — <b>จิ้มบนภาพ</b>เพื่อวัดค่าสี หรือกด <b>กลับ Live</b> เพื่อถ่ายใหม่';
+  document.getElementById('camAnalysis').style.display='block';
+}
+function resumeLive(){
+  fCV.style.display='none';frozen=false;
+  document.getElementById('frozenBadge').style.display='none';
+  document.getElementById('liveBadge').style.display='inline-flex';
+  document.getElementById('capBtn').style.display='inline-flex';
+  document.getElementById('resumeBtn').style.display='none';
+  document.getElementById('camXH').style.display='none';
+  document.getElementById('camHint').innerHTML='เล็งกระดาษให้พร้อมแล้วกด <b>ถ่ายภาพ</b> เพื่อค้างภาพ จากนั้น<b>จิ้มจุด</b>ที่ต้องการวัด';
+}
+function sampleFrozen(e){
+  const r=fCV.getBoundingClientRect(),sx=fCV.width/r.width,sy=fCV.height/r.height;
+  const {r:rv,g:gv,b:bv}=px(fCtx,(e.clientX-r.left)*sx,(e.clientY-r.top)*sy);
+  cRGB={r:rv,g:gv,b:bv};upd(rv,gv,bv,'cam');
+  document.getElementById('camSaveBtn').style.display='flex';
+  const xh=document.getElementById('camXH');xh.style.display='block';xh.style.left=(e.clientX-r.left)+'px';xh.style.top=(e.clientY-r.top)+'px';
+  drawSpec(rv,gv,bv,'camSC','camSPH',cS);
+}
+function stopCam(){
+  if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;frozen=false;
+  vid.srcObject=null;fCV.style.display='none';
+  document.getElementById('camPH').style.display='flex';
+  document.getElementById('startBtn').style.display='inline-flex';
+  ['capBtn','resumeBtn','stopBtn'].forEach(id=>document.getElementById(id).style.display='none');
+  ['liveBadge','frozenBadge'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('camXH').style.display='none';
+  document.getElementById('camHint').innerHTML='กด <b>เปิดกล้อง</b> แล้วเล็งกระดาษ → กด <b>ถ่ายภาพ</b> เพื่อค้างภาพ → <b>จิ้มจุด</b>ที่ต้องการวัดสี';
+}
+function saveCam(){if(!cRGB)return;cSamples.push({...cRGB,t:new Date().toLocaleTimeString('th')});renderS('cam',cSamples);document.getElementById('camHistCard').style.display='block';}
+function clearCamS(){cSamples=[];renderS('cam',cSamples);}
+function renderS(p,list){
+  const el=document.getElementById(p+'SL');
+  if(!list.length){el.innerHTML='<div style="color:var(--text-dim);font-size:.82rem;text-align:center;padding:10px 0">ยังไม่มีข้อมูล</div>';return;}
+  el.innerHTML=list.map((s,i)=>{
+    const h='#'+[s.r,s.g,s.b].map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();
+    return`<div class="sitem"><div class="sswatch" style="background:${h}"></div><div style="flex:1"><div class="sblue">B = ${s.b}</div><div class="shex">${h} · R:${s.r} G:${s.g} · ${s.t}</div></div><div style="font-family:var(--mono);font-size:.7rem;color:var(--text-dim)">#${i+1}</div></div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
