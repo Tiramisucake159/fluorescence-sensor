@@ -2,1152 +2,394 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Carbon Dot Fluorescence Sensor Analyzer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Fluorescence Sensor Analyzer</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #04080f;
-    --surface: #080f1e;
-    --card: #0c1829;
-    --border: rgba(0,220,255,0.18);
-    --cyan: #00dcff;
-    --cyan-dim: rgba(0,220,255,0.12);
-    --green: #39ff7a;
-    --gold: #ffd84d;
-    --red: #ff5e7a;
-    --text: #cce8ff;
-    --text-dim: #6888aa;
-    --font-mono: 'Space Mono', monospace;
-    --font-body: 'Sarabun', sans-serif;
-    --glow: 0 0 20px rgba(0,220,255,0.35), 0 0 60px rgba(0,220,255,0.12);
-    --glow-green: 0 0 20px rgba(57,255,122,0.35);
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-body);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Particle background */
-  #particles {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none; z-index: 0; overflow: hidden;
-  }
-  .particle {
-    position: absolute;
-    border-radius: 50%;
-    background: var(--cyan);
-    opacity: 0;
-    animation: float-up linear infinite;
-  }
-  @keyframes float-up {
-    0% { opacity: 0; transform: translateY(100vh) scale(0); }
-    10% { opacity: 0.6; }
-    90% { opacity: 0.2; }
-    100% { opacity: 0; transform: translateY(-10vh) scale(1); }
-  }
-
-  /* Header */
-  header {
-    position: relative; z-index: 10;
-    padding: 28px 40px 20px;
-    border-bottom: 1px solid var(--border);
-    background: linear-gradient(180deg, rgba(0,220,255,0.04) 0%, transparent 100%);
-    display: flex; align-items: center; gap: 20px;
-  }
-  .logo-icon {
-    width: 52px; height: 52px;
-    background: var(--cyan-dim);
-    border: 1px solid var(--cyan);
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 26px;
-    box-shadow: var(--glow);
-    flex-shrink: 0;
-  }
-  header h1 {
-    font-family: var(--font-mono);
-    font-size: 1.1rem;
-    color: var(--cyan);
-    text-shadow: var(--glow);
-    letter-spacing: 0.05em;
-    line-height: 1.3;
-  }
-  header p {
-    font-size: 0.8rem;
-    color: var(--text-dim);
-    margin-top: 2px;
-    font-family: var(--font-mono);
-  }
-
-  /* Tabs */
-  .tabs {
-    position: relative; z-index: 10;
-    display: flex; gap: 0;
-    padding: 0 40px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-  }
-  .tab-btn {
-    padding: 14px 24px;
-    background: none;
-    border: none;
-    border-bottom: 2px solid transparent;
-    color: var(--text-dim);
-    font-family: var(--font-body);
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex; align-items: center; gap: 8px;
-    margin-bottom: -1px;
-  }
-  .tab-btn:hover { color: var(--text); }
-  .tab-btn.active {
-    color: var(--cyan);
-    border-bottom-color: var(--cyan);
-    text-shadow: 0 0 12px rgba(0,220,255,0.5);
-  }
-  .tab-icon { font-size: 1.1rem; }
-
-  /* Main */
-  main {
-    position: relative; z-index: 10;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 32px 40px;
-  }
-
-  .tab-panel { display: none; }
-  .tab-panel.active { display: block; }
-
-  /* Cards */
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 24px;
-    margin-bottom: 20px;
-  }
-  .card-title {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    color: var(--cyan);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    margin-bottom: 16px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .card-title::before {
-    content: '';
-    width: 3px; height: 14px;
-    background: var(--cyan);
-    border-radius: 2px;
-    box-shadow: var(--glow);
-  }
-
-  /* Upload zone */
-  .upload-zone {
-    border: 2px dashed var(--border);
-    border-radius: 12px;
-    padding: 40px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.25s;
-    background: rgba(0,220,255,0.02);
-  }
-  .upload-zone:hover, .upload-zone.drag-over {
-    border-color: var(--cyan);
-    background: var(--cyan-dim);
-    box-shadow: var(--glow);
-  }
-  .upload-zone input[type=file] { display: none; }
-  .upload-icon { font-size: 2.5rem; margin-bottom: 10px; }
-  .upload-zone h3 { font-size: 1rem; color: var(--text); margin-bottom: 6px; }
-  .upload-zone p { font-size: 0.82rem; color: var(--text-dim); }
-
-  /* Buttons */
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-family: var(--font-body);
-    font-size: 0.88rem;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: all 0.2s;
-  }
-  .btn-cyan {
-    background: var(--cyan);
-    color: #000;
-    box-shadow: 0 0 16px rgba(0,220,255,0.3);
-  }
-  .btn-cyan:hover { background: #33e8ff; box-shadow: var(--glow); transform: translateY(-1px); }
-  .btn-outline {
-    background: transparent;
-    color: var(--cyan);
-    border: 1px solid var(--cyan);
-  }
-  .btn-outline:hover { background: var(--cyan-dim); }
-  .btn-green {
-    background: var(--green);
-    color: #000;
-    box-shadow: 0 0 16px rgba(57,255,122,0.3);
-  }
-  .btn-green:hover { background: #5fffaa; box-shadow: var(--glow-green); }
-  .btn-red {
-    background: var(--red);
-    color: #fff;
-  }
-
-  /* Select */
-  select {
-    background: var(--card);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-family: var(--font-body);
-    font-size: 0.88rem;
-    cursor: pointer;
-    outline: none;
-  }
-  select:focus { border-color: var(--cyan); }
-
-  /* Chart container */
-  .chart-wrap {
-    position: relative;
-    background: rgba(0,0,0,0.3);
-    border-radius: 10px;
-    padding: 16px;
-    height: 380px;
-  }
-
-  /* Stats row */
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 12px;
-    margin-top: 16px;
-  }
-  .stat-box {
-    background: rgba(0,0,0,0.3);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px;
-    text-align: center;
-    transition: border-color 0.2s;
-  }
-  .stat-box:hover { border-color: var(--cyan); }
-  .stat-box .conc {
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    color: var(--text-dim);
-    margin-bottom: 4px;
-  }
-  .stat-box .peak {
-    font-family: var(--font-mono);
-    font-size: 1.25rem;
-    font-weight: 700;
-  }
-  .stat-box .quench {
-    font-size: 0.75rem;
-    margin-top: 4px;
-    padding: 2px 8px;
-    border-radius: 20px;
-    display: inline-block;
-  }
-
-  /* Table */
-  .data-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.85rem;
-  }
-  .data-table th {
-    background: var(--cyan-dim);
-    color: var(--cyan);
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
-    padding: 10px 14px;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-  }
-  .data-table td {
-    padding: 10px 14px;
-    border-bottom: 1px solid rgba(0,220,255,0.06);
-    color: var(--text);
-  }
-  .data-table tr:hover td { background: rgba(0,220,255,0.04); }
-  .quench-bar-wrap { display: flex; align-items: center; gap: 8px; }
-  .quench-bar {
-    height: 6px; border-radius: 3px;
-    background: linear-gradient(90deg, var(--cyan), var(--green));
-    transition: width 0.6s ease;
-    min-width: 4px;
-  }
-
-  /* ─── Tab 2: Image ─── */
-  .two-col { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
-  .canvas-wrap {
-    position: relative;
-    background: #000;
-    border-radius: 10px;
-    overflow: hidden;
-    cursor: crosshair;
-    min-height: 360px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .canvas-wrap canvas { display: block; max-width: 100%; }
-  .canvas-placeholder {
-    position: absolute;
-    color: var(--text-dim);
-    font-size: 0.85rem;
-    text-align: center;
-    pointer-events: none;
-  }
-  .canvas-placeholder .big { font-size: 2.5rem; display: block; margin-bottom: 8px; }
-  .crosshair-indicator {
-    position: absolute;
-    width: 20px; height: 20px;
-    border: 2px solid var(--cyan);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    display: none;
-    box-shadow: 0 0 10px var(--cyan);
-  }
-
-  /* RGB display */
-  .rgb-display {
-    display: flex; flex-direction: column; gap: 14px;
-  }
-  .color-preview {
-    width: 100%; height: 80px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    transition: background 0.3s;
-    background: #1a1a2e;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .color-preview span {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    mix-blend-mode: difference;
-    color: #fff;
-    opacity: 0.7;
-  }
-  .rgb-channels { display: flex; flex-direction: column; gap: 8px; }
-  .rgb-bar-row { display: flex; align-items: center; gap: 10px; }
-  .rgb-label {
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    width: 14px;
-    font-weight: 700;
-  }
-  .rgb-label.r { color: #ff5e7a; }
-  .rgb-label.g { color: #39ff7a; }
-  .rgb-label.b { color: #4da6ff; }
-  .rgb-track {
-    flex: 1; height: 8px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 4px; overflow: hidden;
-  }
-  .rgb-fill {
-    height: 100%; border-radius: 4px;
-    transition: width 0.3s ease;
-  }
-  .rgb-fill.r { background: linear-gradient(90deg, #7a0020, #ff5e7a); }
-  .rgb-fill.g { background: linear-gradient(90deg, #006428, #39ff7a); }
-  .rgb-fill.b { background: linear-gradient(90deg, #001e7a, #4da6ff); }
-  .rgb-val {
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    width: 32px;
-    text-align: right;
-    color: var(--text);
-  }
-
-  /* Sampled history */
-  .sample-list { display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; }
-  .sample-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 8px 10px;
-    background: rgba(0,0,0,0.3);
-    border-radius: 8px;
-    font-size: 0.8rem;
-    border: 1px solid var(--border);
-  }
-  .swatch { width: 22px; height: 22px; border-radius: 4px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.15); }
-  .sample-rgb { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-dim); }
-
-  /* ─── Tab 3: Camera ─── */
-  .camera-wrap {
-    position: relative;
-    background: #000;
-    border-radius: 12px;
-    overflow: hidden;
-    aspect-ratio: 4/3;
-    max-height: 460px;
-    cursor: crosshair;
-  }
-  #cameraVideo {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-  #cameraCanvas { display: none; }
-  .camera-overlay {
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(0,0,0,0.6);
-    flex-direction: column; gap: 12px;
-  }
-  .camera-reticle {
-    position: absolute; inset: 0; pointer-events: none;
-  }
-  .scan-line {
-    position: absolute; width: 100%; height: 2px;
-    background: linear-gradient(90deg, transparent 0%, var(--cyan) 50%, transparent 100%);
-    opacity: 0.4;
-    animation: scan 3s ease-in-out infinite;
-  }
-  @keyframes scan {
-    0% { top: 20%; }
-    50% { top: 80%; }
-    100% { top: 20%; }
-  }
-  .corner { position: absolute; width: 20px; height: 20px; }
-  .corner.tl { top: 12px; left: 12px; border-top: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
-  .corner.tr { top: 12px; right: 12px; border-top: 2px solid var(--cyan); border-right: 2px solid var(--cyan); }
-  .corner.bl { bottom: 12px; left: 12px; border-bottom: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
-  .corner.br { bottom: 12px; right: 12px; border-bottom: 2px solid var(--cyan); border-right: 2px solid var(--cyan); }
-
-  .live-dot {
-    display: inline-block; width: 8px; height: 8px;
-    background: var(--green); border-radius: 50%;
-    animation: pulse-dot 1.2s ease-in-out infinite;
-    box-shadow: var(--glow-green);
-  }
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(0.7); }
-  }
-
-  /* Tip box */
-  .tip-box {
-    background: rgba(0,220,255,0.06);
-    border: 1px solid rgba(0,220,255,0.2);
-    border-radius: 10px;
-    padding: 14px 18px;
-    font-size: 0.83rem;
-    color: var(--text-dim);
-    line-height: 1.6;
-  }
-  .tip-box b { color: var(--cyan); }
-
-  /* Badge */
-  .badge {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-  }
-  .badge-fe { background: rgba(255,94,122,0.15); color: #ff8fa0; border: 1px solid rgba(255,94,122,0.3); }
-  .badge-zn { background: rgba(77,166,255,0.15); color: #80c0ff; border: 1px solid rgba(77,166,255,0.3); }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    header { padding: 16px 20px; }
-    main { padding: 20px; }
-    .tabs { padding: 0 20px; }
-    .two-col { grid-template-columns: 1fr; }
-    .tab-btn { padding: 12px 14px; font-size: 0.82rem; }
-  }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: var(--surface); }
-  ::-webkit-scrollbar-thumb { background: rgba(0,220,255,0.3); border-radius: 3px; }
-
-  .flex-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .mt-3 { margin-top: 12px; }
-  .mt-4 { margin-top: 16px; }
+:root {
+  --bg:#f0f2f5; --surface:#fff; --surface2:#f7f8fa;
+  --border:#d8dde5; --border-light:#eaecf0;
+  --navy:#1b2f4e; --navy-mid:#2c4a72;
+  --blue:#1e6fd9; --blue-light:#e8f0fb;
+  --green:#1a8a5a; --green-light:#e6f5ee;
+  --red:#c0392b; --amber:#b86a00; --amber-light:#fef3e2;
+  --text:#1b2533; --text-mid:#4a5568; --text-dim:#8896a8;
+  --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans Thai',sans-serif;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shadow:0 2px 8px rgba(0,0,0,.08),0 1px 3px rgba(0,0,0,.05);
+  --radius:10px; --radius-sm:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;font-size:15px;line-height:1.5}
+header{background:var(--navy);padding:0 20px;display:flex;align-items:center;gap:14px;height:60px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.hico{width:36px;height:36px;background:rgba(255,255,255,.12);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.htxt h1{font-family:var(--mono);font-size:.82rem;font-weight:600;color:#fff;letter-spacing:.02em}
+.htxt p{font-size:.7rem;color:rgba(255,255,255,.5);font-family:var(--mono);letter-spacing:.03em}
+.hbadge{margin-left:auto;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.75);font-family:var(--mono);font-size:.65rem;padding:3px 9px;border-radius:20px;letter-spacing:.08em;white-space:nowrap}
+.tab-bar{background:var(--surface);border-bottom:1px solid var(--border);display:flex;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab-btn{padding:14px 18px 13px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-dim);font-family:var(--sans);font-size:.88rem;font-weight:500;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:7px;margin-bottom:-1px;transition:color .15s,border-color .15s}
+.tab-btn:hover{color:var(--navy-mid)}
+.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
+main{max-width:840px;margin:0 auto;padding:20px 16px 40px}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:16px}
+.card-hd{padding:13px 18px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:10px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0}
+.card-title{font-size:.78rem;font-weight:600;color:var(--navy);text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono)}
+.card-body{padding:18px}
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:36px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface2);display:block}
+.upload-zone:hover{border-color:var(--blue);background:var(--blue-light)}
+.upload-zone input{display:none}
+.upload-icon{font-size:2.2rem;margin-bottom:10px}
+.upload-zone h3{font-size:1rem;font-weight:600;color:var(--navy);margin-bottom:4px}
+.upload-zone p{font-size:.82rem;color:var(--text-dim)}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:var(--radius-sm);font-family:var(--sans);font-size:.88rem;font-weight:600;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--blue);color:#fff;box-shadow:var(--shadow-sm)}
+.btn-primary:hover{background:#1860c0}
+.btn-primary:active{transform:scale(.98)}
+.btn-success{background:var(--green);color:#fff}
+.btn-success:hover{background:#157a4f}
+.btn-danger{background:var(--red);color:#fff}
+.btn-outline{background:var(--surface);color:var(--navy-mid);border:1px solid var(--border);box-shadow:var(--shadow-sm)}
+.btn-outline:hover{background:var(--surface2)}
+.btn-full{width:100%;justify-content:center}
+.agrid{display:grid;grid-template-columns:1fr 270px;gap:16px}
+@media(max-width:640px){.agrid{grid-template-columns:1fr}}
+.canvas-cont{position:relative;background:#1a1a1a;border-radius:var(--radius-sm);overflow:hidden;cursor:crosshair;min-height:260px;display:flex;align-items:center;justify-content:center}
+.canvas-cont canvas{display:block;max-width:100%}
+.cph{text-align:center;color:#666;font-size:.85rem}
+.cph span{display:block;font-size:2rem;margin-bottom:8px}
+.xhair{position:absolute;width:18px;height:18px;border:2px solid #fff;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;display:none;box-shadow:0 0 0 1px rgba(0,0,0,.5)}
+.readout{display:flex;flex-direction:column;gap:12px}
+.swatch{height:70px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;transition:background .25s}
+.swatch span{font-family:var(--mono);font-size:.8rem;color:var(--text-dim)}
+.blue-box{background:var(--blue-light);border:1px solid #b8d0f5;border-radius:var(--radius-sm);padding:14px 16px;text-align:center}
+.blue-lbl{font-family:var(--mono);font-size:.65rem;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px}
+.blue-val{font-family:var(--mono);font-size:2.6rem;font-weight:600;color:var(--navy);line-height:1}
+.blue-sub{font-size:.72rem;color:var(--text-dim);margin-top:4px}
+.rgb-lbl{font-family:var(--mono);font-size:.65rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.rgb-rows{display:flex;flex-direction:column;gap:6px}
+.rgb-row{display:flex;align-items:center;gap:8px}
+.rgb-ch{font-family:var(--mono);font-size:.72rem;font-weight:600;width:12px;flex-shrink:0}
+.rgb-ch.r{color:#c0392b}.rgb-ch.g{color:#1a8a5a}.rgb-ch.b{color:#1e6fd9}
+.rgb-track{flex:1;height:7px;background:var(--border-light);border-radius:4px;overflow:hidden}
+.rgb-fill{height:100%;border-radius:4px;transition:width .3s}
+.rgb-fill.r{background:#e74c3c}.rgb-fill.g{background:#27ae60}.rgb-fill.b{background:#2980b9}
+.rgb-num{font-family:var(--mono);font-size:.75rem;font-weight:500;width:28px;text-align:right;color:var(--text-mid);flex-shrink:0}
+.spec-wrap{position:relative;height:190px;background:var(--surface2);border-radius:var(--radius-sm);overflow:hidden}
+.spec-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:var(--text-dim);font-size:.82rem}
+.spec-ph span{font-size:1.5rem}
+.cam-area{position:relative;background:#111;border-radius:var(--radius-sm);overflow:hidden;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center}
+.cam-area video{width:100%;height:100%;object-fit:cover;display:block}
+.cam-ph{text-align:center;color:#666;font-size:.85rem}
+.cam-ph span{display:block;font-size:2.5rem;margin-bottom:8px}
+.frozen-cv{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;display:none;object-fit:cover}
+.live-badge{display:inline-flex;align-items:center;gap:5px;background:#e8f5e9;color:var(--green);border:1px solid #a5d6a7;border-radius:20px;padding:3px 10px;font-family:var(--mono);font-size:.68rem;font-weight:600;letter-spacing:.08em}
+.live-dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:blink 1.2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.frozen-badge{display:inline-flex;align-items:center;gap:5px;background:var(--amber-light);color:var(--amber);border:1px solid #fcd68a;border-radius:20px;padding:3px 10px;font-family:var(--mono);font-size:.68rem;font-weight:600;letter-spacing:.08em}
+.info-box{background:var(--blue-light);border:1px solid #c5d9f5;border-radius:var(--radius-sm);padding:12px 14px;font-size:.82rem;color:var(--navy-mid);line-height:1.6}
+.info-box b{color:var(--blue)}
+.slist{display:flex;flex-direction:column;gap:6px}
+.sitem{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border-light);font-size:.82rem}
+.sswatch{width:24px;height:24px;border-radius:4px;border:1px solid var(--border);flex-shrink:0}
+.shex{font-family:var(--mono);font-size:.72rem;color:var(--text-dim)}
+.sblue{font-family:var(--mono);font-size:.9rem;font-weight:600;color:var(--blue)}
+.flex-c{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mt-12{margin-top:12px}.mt-16{margin-top:16px}
+.fb{display:flex;align-items:center;justify-content:space-between}
 </style>
 </head>
 <body>
-
-<!-- Particles -->
-<div id="particles"></div>
-
-<!-- Header -->
 <header>
-  <div class="logo-icon">🔬</div>
-  <div>
-    <h1>Carbon Dot Fluorescence Sensor Analyzer</h1>
-    <p>Heavy Metal Detection · Fluorescence Paper Sensor · RGB Analysis</p>
+  <div class="hico">🔬</div>
+  <div class="htxt">
+    <h1>FLUORESCENCE SENSOR ANALYZER</h1>
+    <p>Carbon Dot · Heavy Metal Detection</p>
   </div>
+  <div class="hbadge">v2.0</div>
 </header>
-
-<!-- Tabs -->
-<div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('image')">
-    <span class="tab-icon">🖼️</span> อัปโหลดรูปภาพ
-  </button>
-  <button class="tab-btn" onclick="switchTab('camera')">
-    <span class="tab-icon">📷</span> ถ่ายภาพสด
-  </button>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('image',this)"><span>🖼</span> อัปโหลดรูปภาพ</button>
+  <button class="tab-btn" onclick="switchTab('camera',this)"><span>📷</span> ถ่ายภาพสด</button>
 </div>
-
-<!-- Main -->
 <main>
 
-  <!-- ═══════════ TAB 1: IMAGE RGB ═══════════ -->
-  <div id="tab-image" class="tab-panel active">
-
-    <div class="card">
-      <div class="card-title">อัปโหลดภาพกระดาษเรืองแสง</div>
-      <label class="upload-zone" id="imgZone">
+<!-- TAB IMAGE -->
+<div id="tab-image" class="tab-panel active">
+  <div class="card" id="uploadCard">
+    <div class="card-hd"><div class="dot"></div><div class="card-title">อัปโหลดภาพกระดาษเรืองแสง</div></div>
+    <div class="card-body">
+      <label class="upload-zone" id="uploadZone">
         <input type="file" id="imgFile" accept="image/*" onchange="loadImage(this)">
-        <div class="upload-icon">🖼️</div>
+        <div class="upload-icon">📂</div>
         <h3>คลิกหรือลากภาพมาวาง</h3>
-        <p>รองรับ JPG, PNG, WEBP · คลิกบนภาพเพื่อดึงค่า RGB</p>
+        <p>รองรับ JPG, PNG, WEBP · จิ้มบนภาพเพื่อวัดค่า</p>
       </label>
     </div>
-
-    <div class="two-col" id="imageAnalyzer" style="display:none;">
-
-      <!-- Canvas side -->
-      <div>
-        <div class="card" style="padding:12px;">
-          <div class="card-title" style="margin-bottom:8px;">คลิกบนภาพเพื่อดึงค่า RGB</div>
-          <div class="canvas-wrap" id="canvasWrap">
-            <canvas id="imgCanvas" onclick="samplePixel(event)"></canvas>
-            <div class="crosshair-indicator" id="crosshair"></div>
-          </div>
-        </div>
-
-        <!-- Sampled history -->
-        <div class="card" id="sampleHistCard" style="display:none;">
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-            <div class="card-title" style="margin-bottom:0;">ประวัติการสุ่มตัวอย่าง</div>
-            <button class="btn btn-outline" onclick="clearSamples()" style="font-size:0.78rem; padding:6px 12px;">🗑️ ล้าง</button>
-          </div>
-          <div class="sample-list" id="sampleList"></div>
-        </div>
-      </div>
-
-      <!-- RGB panel -->
-      <div>
-        <div class="card rgb-display">
-          <div class="card-title">ค่าการเรืองแสง ณ จุดที่เลือก</div>
-          <div class="color-preview" id="colorPreview">
-            <span id="hexVal">#------</span>
-          </div>
-
-          <!-- ค่าเรืองแสงหลัก (Blue channel) -->
-          <div style="background:rgba(77,166,255,0.08); border:1px solid rgba(77,166,255,0.35);
-                      border-radius:12px; padding:16px; text-align:center;">
-            <div style="font-size:0.72rem; color:var(--text-dim); font-family:var(--font-mono);
-                        letter-spacing:0.1em; margin-bottom:6px;">ค่าความเรืองแสง (Blue)</div>
-            <div id="blueMain" style="font-family:var(--font-mono); font-size:2.4rem;
-                                       font-weight:700; color:#4da6ff;
-                                       text-shadow:0 0 20px rgba(77,166,255,0.6);">—</div>
-            <div style="font-size:0.72rem; color:var(--text-dim); margin-top:4px;">
-              ช่วง 0–255 · ยิ่งสูง = เรืองแสงมาก
+  </div>
+  <div id="imgAnalysis" style="display:none">
+    <div class="card">
+      <div class="card-hd"><div class="dot"></div><div class="card-title">จิ้มบนภาพเพื่ออ่านค่าสี</div></div>
+      <div class="card-body">
+        <div class="agrid">
+          <div>
+            <div class="canvas-cont" id="imgCW">
+              <canvas id="imgCanvas" onclick="sampleImg(event)"></canvas>
+              <div id="imgXH" class="xhair"></div>
+            </div>
+            <div class="fb mt-12">
+              <span style="font-size:.78rem;color:var(--text-dim)">จิ้มที่จุดกระดาษที่ต้องการวัด</span>
+              <button class="btn btn-outline" onclick="resetImg()" style="font-size:.78rem;padding:6px 12px">🔄 เปลี่ยนรูป</button>
             </div>
           </div>
-
-          <!-- แถบ RGB สามช่อง (ข้อมูลเสริม) -->
-          <div style="margin-top:14px;">
-            <div style="font-size:0.72rem; color:var(--text-dim); font-family:var(--font-mono);
-                        letter-spacing:0.08em; margin-bottom:8px;">ค่า RGB อ้างอิง</div>
-            <div class="rgb-channels">
-              <div class="rgb-bar-row">
-                <span class="rgb-label r">R</span>
-                <div class="rgb-track"><div class="rgb-fill r" id="rFill" style="width:0%"></div></div>
-                <span class="rgb-val" id="rVal">—</span>
-              </div>
-              <div class="rgb-bar-row">
-                <span class="rgb-label g">G</span>
-                <div class="rgb-track"><div class="rgb-fill g" id="gFill" style="width:0%"></div></div>
-                <span class="rgb-val" id="gVal">—</span>
-              </div>
-              <div class="rgb-bar-row">
-                <span class="rgb-label b">B</span>
-                <div class="rgb-track"><div class="rgb-fill b" id="bFill" style="width:0%"></div></div>
-                <span class="rgb-val" id="bVal">—</span>
+          <div class="readout">
+            <div class="swatch" id="imgSwatch"><span id="imgHex">#------</span></div>
+            <div class="blue-box">
+              <div class="blue-lbl">ค่าความเรืองแสง (Blue)</div>
+              <div class="blue-val" id="imgBlue">—</div>
+              <div class="blue-sub">ช่วง 0–255 · ยิ่งสูง = เรืองแสงมาก</div>
+            </div>
+            <div>
+              <div class="rgb-lbl">RGB อ้างอิง</div>
+              <div class="rgb-rows">
+                <div class="rgb-row"><span class="rgb-ch r">R</span><div class="rgb-track"><div class="rgb-fill r" id="imgRf" style="width:0%"></div></div><span class="rgb-num" id="imgRv">—</span></div>
+                <div class="rgb-row"><span class="rgb-ch g">G</span><div class="rgb-track"><div class="rgb-fill g" id="imgGf" style="width:0%"></div></div><span class="rgb-num" id="imgGv">—</span></div>
+                <div class="rgb-row"><span class="rgb-ch b">B</span><div class="rgb-track"><div class="rgb-fill b" id="imgBf" style="width:0%"></div></div><span class="rgb-num" id="imgBv">—</span></div>
               </div>
             </div>
+            <button class="btn btn-primary btn-full" id="imgSaveBtn" onclick="saveImg()" style="display:none">＋ บันทึกค่านี้</button>
           </div>
-
-          <button class="btn btn-cyan" onclick="addSample()" id="addSampleBtn" style="display:none; width:100%;">
-            ➕ บันทึกค่านี้
-          </button>
-        </div>
-
-        <div class="tip-box">
-          <b>💡 วิธีใช้:</b><br>
-          อัปโหลดภาพกระดาษเรืองแสงที่ถ่ายไว้ แล้วคลิกบนบริเวณที่ต้องการวัดสี<br><br>
-          <b>ค่าความเรืองแสง (Blue)</b> คือค่าหลักที่ใช้เปรียบเทียบค่ะ
-          เพราะ Carbon Dot เรืองแสงสีน้ำเงิน ยิ่งโลหะหนักมาก ค่า Blue จะยิ่ง<b>ลดลง</b>
         </div>
       </div>
-
+    </div>
+    <div class="card">
+      <div class="card-hd"><div class="dot" style="background:var(--green)"></div><div class="card-title">Pseudo Emission Spectrum</div><span style="margin-left:auto;font-size:.7rem;color:var(--text-dim);font-family:var(--mono)">RGB → Wavelength map</span></div>
+      <div class="card-body">
+        <div class="spec-wrap"><div class="spec-ph" id="imgSPH"><span>📊</span>จิ้มบนภาพเพื่อดูกราฟ</div><canvas id="imgSC" style="display:none"></canvas></div>
+        <div style="font-size:.72rem;color:var(--text-dim);margin-top:8px;font-family:var(--mono);line-height:1.6">B channel ≈ 400–500 nm · G channel ≈ 500–570 nm · R channel ≈ 570–700 nm</div>
+      </div>
+    </div>
+    <div class="card" id="imgHistCard" style="display:none">
+      <div class="card-hd"><div class="dot" style="background:var(--amber)"></div><div class="card-title">ประวัติการวัด</div><button class="btn btn-outline" onclick="clearImgS()" style="margin-left:auto;font-size:.75rem;padding:5px 10px">ล้าง</button></div>
+      <div class="card-body"><div class="slist" id="imgSL"></div></div>
     </div>
   </div>
+</div>
 
-  <!-- ═══════════ TAB 3: CAMERA ═══════════ -->
-  <div id="tab-camera" class="tab-panel">
-
-    <div style="display:grid; grid-template-columns:1fr 320px; gap:20px;">
-
-      <div>
-        <div class="card" style="padding:12px;">
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
-            <div class="card-title" style="margin-bottom:0;">
-              <span id="liveBadge" style="display:none;">
-                <span class="live-dot"></span> &nbsp;LIVE
-              </span>
-              <span id="offBadge">📷 กล้องถ่ายภาพสด</span>
-            </div>
-            <div class="flex-row">
-              <button class="btn btn-green" id="startCamBtn" onclick="startCamera()">▶ เปิดกล้อง</button>
-              <button class="btn btn-red" id="stopCamBtn" onclick="stopCamera()" style="display:none;">■ ปิดกล้อง</button>
-            </div>
-          </div>
-
-          <div class="camera-wrap" id="cameraWrap" onclick="sampleCamera(event)">
-            <video id="cameraVideo" autoplay playsinline></video>
-            <canvas id="cameraCanvas"></canvas>
-            <div id="cameraOverlay" class="camera-overlay">
-              <div style="font-size:2.5rem;">📷</div>
-              <div style="font-size:0.9rem; color:var(--text-dim);">กด "เปิดกล้อง" เพื่อเริ่มต้น</div>
-            </div>
-            <!-- Reticle overlay (when camera is on) -->
-            <div class="camera-reticle" id="camReticle" style="display:none;">
-              <div class="scan-line"></div>
-              <div class="corner tl"></div>
-              <div class="corner tr"></div>
-              <div class="corner bl"></div>
-              <div class="corner br"></div>
-            </div>
-            <div class="crosshair-indicator" id="camCrosshair"></div>
-          </div>
-          <p style="font-size:0.78rem; color:var(--text-dim); margin-top:8px; text-align:center;">
-            คลิกบนภาพกล้องเพื่อดึงค่า RGB ณ จุดนั้น
-          </p>
-        </div>
+<!-- TAB CAMERA -->
+<div id="tab-camera" class="tab-panel">
+  <div class="card">
+    <div class="card-hd">
+      <div class="dot" style="background:var(--green)"></div>
+      <div class="card-title">ถ่ายภาพสด</div>
+      <div id="camBadge" style="margin-left:auto">
+        <span id="liveBadge" style="display:none" class="live-badge"><span class="live-dot"></span>LIVE</span>
+        <span id="frozenBadge" style="display:none" class="frozen-badge">📌 FROZEN</span>
       </div>
-
-      <div>
-        <div class="card rgb-display">
-          <div class="card-title">ค่าการเรืองแสงจากกล้อง</div>
-          <div class="color-preview" id="camColorPreview">
-            <span id="camHexVal">#------</span>
-          </div>
-
-          <!-- ค่าเรืองแสงหลัก -->
-          <div style="background:rgba(77,166,255,0.08); border:1px solid rgba(77,166,255,0.35);
-                      border-radius:12px; padding:16px; text-align:center;">
-            <div style="font-size:0.72rem; color:var(--text-dim); font-family:var(--font-mono);
-                        letter-spacing:0.1em; margin-bottom:6px;">ค่าความเรืองแสง (Blue)</div>
-            <div id="camBlueMain" style="font-family:var(--font-mono); font-size:2.4rem;
-                                          font-weight:700; color:#4da6ff;
-                                          text-shadow:0 0 20px rgba(77,166,255,0.6);">—</div>
-            <div style="font-size:0.72rem; color:var(--text-dim); margin-top:4px;">
-              ช่วง 0–255 · ยิ่งสูง = เรืองแสงมาก
-            </div>
-          </div>
-
-          <!-- แถบ RGB อ้างอิง -->
-          <div style="margin-top:14px;">
-            <div style="font-size:0.72rem; color:var(--text-dim); font-family:var(--font-mono);
-                        letter-spacing:0.08em; margin-bottom:8px;">ค่า RGB อ้างอิง</div>
-            <div class="rgb-channels">
-              <div class="rgb-bar-row">
-                <span class="rgb-label r">R</span>
-                <div class="rgb-track"><div class="rgb-fill r" id="camRFill" style="width:0%"></div></div>
-                <span class="rgb-val" id="camRVal">—</span>
-              </div>
-              <div class="rgb-bar-row">
-                <span class="rgb-label g">G</span>
-                <div class="rgb-track"><div class="rgb-fill g" id="camGFill" style="width:0%"></div></div>
-                <span class="rgb-val" id="camGVal">—</span>
-              </div>
-              <div class="rgb-bar-row">
-                <span class="rgb-label b">B</span>
-                <div class="rgb-track"><div class="rgb-fill b" id="camBFill" style="width:0%"></div></div>
-                <span class="rgb-val" id="camBVal">—</span>
-              </div>
-            </div>
-          </div>
-
-          <button class="btn btn-cyan" id="camAddBtn" onclick="addCamSample()" style="display:none; width:100%;">
-            ➕ บันทึกค่านี้
-          </button>
-        </div>
-
-        <!-- Camera samples history -->
-        <div class="card" id="camSampleHistCard" style="display:none;">
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-            <div class="card-title" style="margin-bottom:0;">ประวัติ</div>
-            <button class="btn btn-outline" onclick="clearCamSamples()" style="font-size:0.78rem; padding:6px 12px;">🗑️ ล้าง</button>
-          </div>
-          <div class="sample-list" id="camSampleList"></div>
-        </div>
-
-        <div class="tip-box">
-          <b>💡 วิธีใช้:</b><br>
-          เปิดกล้อง → วางกระดาษเรืองแสงในกรอบ → คลิกจุดที่ต้องการวัดสี<br><br>
-          แนะนำใช้ในห้องมืดพร้อมไฟ UV เพื่อผลที่แม่นยำที่สุด
-        </div>
+    </div>
+    <div class="card-body">
+      <div class="cam-area" id="camArea">
+        <video id="camVid" autoplay playsinline></video>
+        <canvas id="camCC"></canvas>
+        <canvas id="frozenCV" class="frozen-cv" onclick="sampleFrozen(event)"></canvas>
+        <div id="camPH" class="cam-ph"><span>📷</span>กด "เปิดกล้อง" เพื่อเริ่มต้น</div>
+        <div id="camXH" class="xhair"></div>
       </div>
-
+      <div class="flex-c mt-12">
+        <button class="btn btn-success" id="startBtn" onclick="startCam()">▶ เปิดกล้อง</button>
+        <button class="btn btn-primary" id="capBtn" onclick="captureFrame()" style="display:none">📸 ถ่ายภาพ</button>
+        <button class="btn btn-outline" id="resumeBtn" onclick="resumeLive()" style="display:none">🎥 กลับ Live</button>
+        <button class="btn btn-danger" id="stopBtn" onclick="stopCam()" style="display:none">■ ปิดกล้อง</button>
+      </div>
+      <div class="info-box mt-12" id="camHint">กด <b>เปิดกล้อง</b> แล้วเล็งกระดาษ → กด <b>ถ่ายภาพ</b> เพื่อค้างภาพ → <b>จิ้มจุด</b>ที่ต้องการวัดสี</div>
     </div>
   </div>
-
+  <div id="camAnalysis" style="display:none">
+    <div class="agrid">
+      <div class="card">
+        <div class="card-hd"><div class="dot"></div><div class="card-title">ค่าที่วัดได้</div></div>
+        <div class="card-body readout">
+          <div class="swatch" id="camSwatch"><span id="camHex">#------</span></div>
+          <div class="blue-box">
+            <div class="blue-lbl">ค่าความเรืองแสง (Blue)</div>
+            <div class="blue-val" id="camBlue">—</div>
+            <div class="blue-sub">ช่วง 0–255 · ยิ่งสูง = เรืองแสงมาก</div>
+          </div>
+          <div>
+            <div class="rgb-lbl">RGB อ้างอิง</div>
+            <div class="rgb-rows">
+              <div class="rgb-row"><span class="rgb-ch r">R</span><div class="rgb-track"><div class="rgb-fill r" id="camRf" style="width:0%"></div></div><span class="rgb-num" id="camRv">—</span></div>
+              <div class="rgb-row"><span class="rgb-ch g">G</span><div class="rgb-track"><div class="rgb-fill g" id="camGf" style="width:0%"></div></div><span class="rgb-num" id="camGv">—</span></div>
+              <div class="rgb-row"><span class="rgb-ch b">B</span><div class="rgb-track"><div class="rgb-fill b" id="camBf" style="width:0%"></div></div><span class="rgb-num" id="camBv">—</span></div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-full" id="camSaveBtn" onclick="saveCam()" style="display:none">＋ บันทึกค่านี้</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div class="dot" style="background:var(--green)"></div><div class="card-title">Emission Spectrum</div></div>
+        <div class="card-body">
+          <div class="spec-wrap"><div class="spec-ph" id="camSPH"><span>📊</span>จิ้มบนภาพค้างเพื่อดูกราฟ</div><canvas id="camSC" style="display:none"></canvas></div>
+        </div>
+      </div>
+    </div>
+    <div class="card" id="camHistCard" style="display:none">
+      <div class="card-hd"><div class="dot" style="background:var(--amber)"></div><div class="card-title">ประวัติการวัด</div><button class="btn btn-outline" onclick="clearCamS()" style="margin-left:auto;font-size:.75rem;padding:5px 10px">ล้าง</button></div>
+      <div class="card-body"><div class="slist" id="camSL"></div></div>
+    </div>
+  </div>
+</div>
 </main>
-
 <script>
-// ═══════════════════════════════════════════════
-// PARTICLES
-// ═══════════════════════════════════════════════
-(function(){
-  const container = document.getElementById('particles');
-  for(let i = 0; i < 18; i++){
-    const p = document.createElement('div');
-    p.className = 'particle';
-    const size = Math.random() * 4 + 2;
-    p.style.cssText = `
-      width:${size}px; height:${size}px;
-      left:${Math.random()*100}%;
-      animation-duration:${Math.random()*12+8}s;
-      animation-delay:${Math.random()*10}s;
-      opacity:0.5;
-      filter:blur(${Math.random()*2}px);
-    `;
-    if(Math.random() > 0.7) p.style.background = '#39ff7a';
-    container.appendChild(p);
-  }
-})();
-
-// ═══════════════════════════════════════════════
-// TABS
-// ═══════════════════════════════════════════════
-function switchTab(name){
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
-  event.currentTarget.classList.add('active');
+function switchTab(n,b){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById('tab-'+n).classList.add('active');
+  b.classList.add('active');
 }
-
-// ═══════════════════════════════════════════════
-// TAB 1: PL SPECTRUM
-// ═══════════════════════════════════════════════
-const datasets = { fe: null, zn: null };
-let plChart = null;
-
-const PALETTE = [
-  '#aaaaaa', '#ff5e7a', '#4da6ff', '#39ff7a', '#ff9f43', '#cc44ff', '#ffd84d', '#00dcff'
-];
-
-function loadCSV(metal, input){
-  const file = input.files[0];
-  if(!file) return;
-  document.getElementById(metal+'Label').textContent = file.name;
-  document.getElementById(metal+'Zone').style.borderColor = 'var(--cyan)';
-
-  const reader = new FileReader();
-  reader.onload = e => {
-    const parsed = parseCSV(e.target.result);
-    datasets[metal] = parsed;
-    showChartCards();
-    if(document.getElementById('metalSelect').value === metal) renderChart();
-    else {
-      document.getElementById('metalSelect').value = metal;
-      renderChart();
-    }
-  };
-  reader.readAsText(file);
-}
-
-function parseCSV(text){
-  const lines = text.trim().split(/\r?\n/);
-  // Row 0: concentration headers (every 2 cols)
-  // Row 1: nm, Data, nm, Data...
-  // Row 2+: data
-  const headerRow = lines[0].split(',');
-  const labels = [];
-  for(let c = 0; c < headerRow.length; c += 2){
-    let lbl = headerRow[c].trim();
-    if(!lbl && c > 0) lbl = headerRow[c-2].trim();
-    labels.push(lbl || 'series'+(c/2));
+const iS={},cS={};
+function drawSpec(r,g,b,cid,pid,ref){
+  document.getElementById(pid).style.display='none';
+  const cv=document.getElementById(cid);
+  cv.style.display='block';
+  const labels=[],data=[];
+  for(let nm=380;nm<=700;nm+=5){
+    labels.push(nm);
+    data.push(+(b*Math.exp(-Math.pow(nm-455,2)/(2*35*35))+g*Math.exp(-Math.pow(nm-540,2)/(2*30*30))+r*Math.exp(-Math.pow(nm-650,2)/(2*30*30))).toFixed(2));
   }
-
-  const result = [];
-  const numCols = Math.floor(headerRow.length / 2);
-
-  for(let s = 0; s < numCols; s++){
-    result.push({ label: labels[s], nm: [], data: [] });
-  }
-
-  for(let r = 2; r < lines.length; r++){
-    const cols = lines[r].split(',');
-    for(let s = 0; s < numCols; s++){
-      const nm = parseFloat(cols[s*2]);
-      const val = parseFloat(cols[s*2+1]);
-      if(!isNaN(nm) && !isNaN(val)){
-        result[s].nm.push(nm);
-        result[s].data.push(val);
-      }
-    }
-  }
-  return result;
-}
-
-function renderChart(){
-  const metal = document.getElementById('metalSelect').value;
-  const minNm = parseInt(document.getElementById('minNmInput')?.value) || 290;
-  const raw = datasets[metal];
-  if(!raw) return;
-
-  // Build chart datasets
-  const chartData = raw.map((s, i) => ({
-    label: s.label === 'contral' ? 'Control' : s.label + ' µM',
-    data: s.nm.map((x, j) => ({ x, y: s.data[j] })),
-    borderColor: PALETTE[i] || '#ffffff',
-    backgroundColor: 'transparent',
-    borderWidth: s.label === 'contral' ? 2.5 : 1.5,
-    pointRadius: 0,
-    tension: 0.3,
-  }));
-
-  // X labels (use first series nm)
-  const labels = raw[0].nm;
-
-  if(plChart) plChart.destroy();
-  const ctx = document.getElementById('plChart').getContext('2d');
-  plChart = new Chart(ctx, {
-    type: 'line',
-    data: { labels, datasets: chartData },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      scales: {
-        x: {
-          type: 'linear',
-          title: { display: true, text: 'Wavelength (nm)', color: '#6888aa', font: { family: 'Space Mono', size: 11 } },
-          ticks: { color: '#6888aa', font: { family: 'Space Mono', size: 10 }, maxTicksLimit: 10 },
-          grid: { color: 'rgba(0,220,255,0.06)' },
-        },
-        y: {
-          title: { display: true, text: 'Intensity (a.u.)', color: '#6888aa', font: { family: 'Space Mono', size: 11 } },
-          ticks: { color: '#6888aa', font: { family: 'Space Mono', size: 10 } },
-          grid: { color: 'rgba(0,220,255,0.06)' },
-        }
+  if(ref.ch)ref.ch.destroy();
+  const ctx=cv.getContext('2d');
+  ref.ch=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[{data,borderWidth:2,pointRadius:0,tension:.4,fill:true,
+      borderColor:(c)=>{const ch=c.chart,{ctx:x,chartArea:a}=ch;if(!a)return'#1e6fd9';const g2=x.createLinearGradient(a.left,0,a.right,0);g2.addColorStop(0,'rgb(120,0,180)');g2.addColorStop(.15,'rgb(60,60,255)');g2.addColorStop(.35,'rgb(0,200,255)');g2.addColorStop(.55,'rgb(0,200,60)');g2.addColorStop(.75,'rgb(220,180,0)');g2.addColorStop(1,'rgb(220,40,0)');return g2;},
+      backgroundColor:(c)=>{const ch=c.chart,{ctx:x,chartArea:a}=ch;if(!a)return'rgba(30,111,217,.2)';const g2=x.createLinearGradient(a.left,0,a.right,0);g2.addColorStop(0,'rgba(120,0,180,.2)');g2.addColorStop(.35,'rgba(0,200,255,.2)');g2.addColorStop(.55,'rgba(0,200,60,.2)');g2.addColorStop(1,'rgba(220,40,0,.2)');return g2;}
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:350},
+      scales:{
+        x:{title:{display:true,text:'Wavelength (nm)',color:'#8896a8',font:{family:'IBM Plex Mono',size:10}},ticks:{color:'#8896a8',font:{family:'IBM Plex Mono',size:9},maxTicksLimit:8},grid:{color:'#eaecf0'}},
+        y:{title:{display:true,text:'Intensity (a.u.)',color:'#8896a8',font:{family:'IBM Plex Mono',size:10}},ticks:{color:'#8896a8',font:{family:'IBM Plex Mono',size:9}},grid:{color:'#eaecf0'},min:0}
       },
-      plugins: {
-        legend: {
-          labels: { color: '#cce8ff', font: { family: 'Sarabun', size: 12 }, boxWidth: 20, padding: 16 }
-        },
-        tooltip: {
-          backgroundColor: 'rgba(8,15,30,0.95)',
-          borderColor: 'rgba(0,220,255,0.3)',
-          borderWidth: 1,
-          titleColor: '#00dcff',
-          bodyColor: '#cce8ff',
-          callbacks: {
-            title: items => `λ = ${items[0].label} nm`,
-            label: item => ` ${item.dataset.label}: ${item.raw.y.toFixed(1)} a.u.`,
-          }
-        }
-      }
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(27,47,78,.95)',titleColor:'#fff',bodyColor:'#ccd8e8',callbacks:{title:i=>`λ = ${i[0].label} nm`,label:i=>` Intensity: ${i.raw.toFixed(1)}`}}}
     }
   });
-
-  buildStatsAndTable(raw, metal, minNm);
 }
-
-function getPeak(series, minNm){
-  // ค่าพีคจริงของการเรืองแสง Carbon Dot อยู่ที่ ~300-350nm
-  // ต้องข้าม Rayleigh scatter peak ที่ ~230-285nm ออกก่อน
-  // minNm คือช่วงต่ำสุดที่จะเริ่มหาพีค (default 290nm)
-  const startNm = minNm || 290;
-  let max = -Infinity, maxNm = 0;
-  for(let i = 0; i < series.data.length; i++){
-    if(series.nm[i] >= startNm && series.data[i] > max){
-      max = series.data[i];
-      maxNm = series.nm[i];
-    }
-  }
-  // ถ้าไม่เจอค่าในช่วงนั้น fallback ทั้งหมด
-  if(max === -Infinity){
-    for(let i = 0; i < series.data.length; i++){
-      if(series.data[i] > max){ max = series.data[i]; maxNm = series.nm[i]; }
-    }
-  }
-  return { intensity: max, wavelength: maxNm };
+function upd(r,g,b,p){
+  const h='#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();
+  document.getElementById(p+'Swatch').style.background=h;
+  document.getElementById(p+'Hex').textContent=h;
+  document.getElementById(p+'Blue').textContent=b;
+  document.getElementById(p+'Rf').style.width=(r/255*100)+'%';
+  document.getElementById(p+'Gf').style.width=(g/255*100)+'%';
+  document.getElementById(p+'Bf').style.width=(b/255*100)+'%';
+  document.getElementById(p+'Rv').textContent=r;
+  document.getElementById(p+'Gv').textContent=g;
+  document.getElementById(p+'Bv').textContent=b;
 }
-
-function buildStatsAndTable(raw, metal, minNm){
-  const nm = minNm || 290;
-  // ใช้ minNm เดียวกันทุกเส้น เพื่อให้เทียบกันได้
-  const controlPeak = getPeak(raw[0], nm).intensity;
-  const statsRow = document.getElementById('statsRow');
-  const tableBody = document.getElementById('tableBody');
-  statsRow.innerHTML = '';
-  tableBody.innerHTML = '';
-
-  raw.forEach((s, i) => {
-    const pk = getPeak(s, nm);
-    const quench = i === 0 ? 0 : ((controlPeak - pk.intensity) / controlPeak * 100);
-    const isControl = s.label === 'contral';
-    const lbl = isControl ? 'Control' : s.label + ' µM';
-    const color = PALETTE[i] || '#fff';
-    const qColor = quench > 20 ? 'var(--red)' : quench > 10 ? 'var(--gold)' : 'var(--green)';
-
-    // Stat box
-    const box = document.createElement('div');
-    box.className = 'stat-box';
-    box.style.borderTopColor = color;
-    box.style.borderTopWidth = '3px';
-    box.innerHTML = `
-      <div class="conc">${lbl}</div>
-      <div class="peak" style="color:${color}">${pk.intensity.toFixed(0)}</div>
-      <div style="font-size:0.7rem; color:var(--text-dim);">${pk.wavelength} nm</div>
-      ${!isControl ? `<div class="quench" style="background:${qColor}22; color:${qColor}; border:1px solid ${qColor}44; margin-top:6px;">−${quench.toFixed(1)}%</div>` : '<div style="height:20px;"></div>'}
-    `;
-    statsRow.appendChild(box);
-
-    // Table row
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><span style="color:${color}; font-weight:600;">${lbl}</span></td>
-      <td style="font-family:var(--font-mono);">${pk.intensity.toFixed(2)}</td>
-      <td style="font-family:var(--font-mono);">${pk.wavelength} nm</td>
-      <td style="font-family:var(--font-mono); color:${isControl ? 'var(--text-dim)' : qColor}">
-        ${isControl ? '—' : quench.toFixed(2) + '%'}
-      </td>
-      <td>
-        ${isControl ? '<span style="color:var(--text-dim); font-size:0.78rem;">baseline</span>' : `
-          <div class="quench-bar-wrap">
-            <div class="quench-bar" style="width:${Math.min(quench*2.5, 160)}px; background:linear-gradient(90deg,${qColor},${qColor}88);"></div>
-            <span style="font-size:0.78rem; color:${qColor};">${quench.toFixed(1)}%</span>
-          </div>`}
-      </td>
-    `;
-    tableBody.appendChild(tr);
-  });
+function px(ctx,x,y){
+  const d=ctx.getImageData(Math.max(0,x-2),Math.max(0,y-2),5,5).data;
+  let r=0,g=0,b=0,n=0;
+  for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];n++;}
+  return{r:Math.round(r/n),g:Math.round(g/n),b:Math.round(b/n)};
 }
-
-function showChartCards(){
-  ['chartCard','statsCard','tableCard'].forEach(id => {
-    document.getElementById(id).style.display = 'block';
-  });
+// IMAGE
+let iCanvas,iCtx,iRGB=null,iSamples=[];
+function loadImage(inp){
+  const f=inp.files[0];if(!f)return;
+  const u=URL.createObjectURL(f),img=new Image();
+  img.onload=()=>{
+    document.getElementById('uploadCard').style.display='none';
+    document.getElementById('imgAnalysis').style.display='block';
+    iCanvas=document.getElementById('imgCanvas');
+    iCtx=iCanvas.getContext('2d');
+    const mW=600,mH=460;let w=img.width,h=img.height;
+    if(w>mW){h=h*(mW/w);w=mW;}if(h>mH){w=w*(mH/h);h=mH;}
+    iCanvas.width=Math.round(w);iCanvas.height=Math.round(h);
+    iCtx.drawImage(img,0,0,iCanvas.width,iCanvas.height);
+  };img.src=u;
 }
-
-function exportChart(){
-  const canvas = document.getElementById('plChart');
-  const link = document.createElement('a');
-  link.download = 'PL_Spectrum.png';
-  link.href = canvas.toDataURL();
-  link.click();
+function sampleImg(e){
+  if(!iCanvas)return;
+  const r=iCanvas.getBoundingClientRect(),sx=iCanvas.width/r.width,sy=iCanvas.height/r.height;
+  const {r:rv,g:gv,b:bv}=px(iCtx,(e.clientX-r.left)*sx,(e.clientY-r.top)*sy);
+  iRGB={r:rv,g:gv,b:bv};
+  upd(rv,gv,bv,'img');
+  document.getElementById('imgSaveBtn').style.display='flex';
+  const xh=document.getElementById('imgXH');
+  xh.style.display='block';xh.style.left=(e.clientX-r.left)+'px';xh.style.top=(e.clientY-r.top)+'px';
+  drawSpec(rv,gv,bv,'imgSC','imgSPH',iS);
 }
-
-// ═══════════════════════════════════════════════
-// TAB 2: IMAGE RGB
-// ═══════════════════════════════════════════════
-let imgCanvas, imgCtx, currentSample = null, sampleHistory = [];
-
-function loadImage(input){
-  const file = input.files[0];
-  if(!file) return;
-  const url = URL.createObjectURL(file);
-  const img = new Image();
-  img.onload = () => {
-    document.getElementById('imgZone').style.display = 'none';
-    document.getElementById('imageAnalyzer').style.display = 'grid';
-
-    imgCanvas = document.getElementById('imgCanvas');
-    imgCtx = imgCanvas.getContext('2d');
-
-    // Fit to container (~700px max)
-    const maxW = 680, maxH = 500;
-    let w = img.width, h = img.height;
-    if(w > maxW){ h = h*(maxW/w); w = maxW; }
-    if(h > maxH){ w = w*(maxH/h); h = maxH; }
-    imgCanvas.width = w; imgCanvas.height = h;
-    imgCtx.drawImage(img, 0, 0, w, h);
-  };
-  img.src = url;
+function saveImg(){if(!iRGB)return;iSamples.push({...iRGB,t:new Date().toLocaleTimeString('th')});renderS('img',iSamples);document.getElementById('imgHistCard').style.display='block';}
+function clearImgS(){iSamples=[];renderS('img',iSamples);}
+function resetImg(){document.getElementById('uploadCard').style.display='block';document.getElementById('imgAnalysis').style.display='none';document.getElementById('imgFile').value='';}
+// CAMERA
+let stream=null,cRGB=null,cSamples=[],frozen=false;
+const vid=document.getElementById('camVid'),fCV=document.getElementById('frozenCV'),fCtx=fCV.getContext('2d');
+async function startCam(){
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280}},audio:false});
+    vid.srcObject=stream;
+    document.getElementById('camPH').style.display='none';
+    document.getElementById('startBtn').style.display='none';
+    document.getElementById('capBtn').style.display='inline-flex';
+    document.getElementById('stopBtn').style.display='inline-flex';
+    document.getElementById('liveBadge').style.display='inline-flex';
+    document.getElementById('camHint').innerHTML='เล็งกระดาษให้พร้อมแล้วกด <b>ถ่ายภาพ</b> เพื่อค้างภาพ จากนั้น<b>จิ้มจุด</b>ที่ต้องการวัด';
+    frozen=false;
+  }catch(e){alert('ไม่สามารถเข้าถึงกล้องได้ค่ะ\n'+e.message+'\n\nต้องเปิดผ่าน https หรือ localhost');}
 }
-
-function samplePixel(event){
-  if(!imgCanvas) return;
-  const rect = imgCanvas.getBoundingClientRect();
-  const scaleX = imgCanvas.width / rect.width;
-  const scaleY = imgCanvas.height / rect.height;
-  const px = (event.clientX - rect.left) * scaleX;
-  const py = (event.clientY - rect.top) * scaleY;
-
-  // Average 5x5
-  const region = imgCtx.getImageData(Math.max(0,px-2), Math.max(0,py-2), 5, 5);
-  let r=0, g=0, b=0, count=0;
-  for(let i = 0; i < region.data.length; i+=4){
-    r += region.data[i]; g += region.data[i+1]; b += region.data[i+2]; count++;
-  }
-  r = Math.round(r/count); g = Math.round(g/count); b = Math.round(b/count);
-
-  currentSample = {r, g, b, x: px.toFixed(0), y: py.toFixed(0)};
-  updateRGBDisplay(r, g, b, 'colorPreview','hexVal','rFill','gFill','bFill','rVal','gVal','bVal','blueMain');
-  document.getElementById('addSampleBtn').style.display = 'flex';
-
-  // Move crosshair
-  const ch = document.getElementById('crosshair');
-  ch.style.display = 'block';
-  ch.style.left = (event.clientX - rect.left) + 'px';
-  ch.style.top = (event.clientY - rect.top) + 'px';
+function captureFrame(){
+  fCV.width=vid.videoWidth;fCV.height=vid.videoHeight;
+  fCtx.drawImage(vid,0,0);
+  fCV.style.display='block';frozen=true;
+  document.getElementById('liveBadge').style.display='none';
+  document.getElementById('frozenBadge').style.display='inline-flex';
+  document.getElementById('capBtn').style.display='none';
+  document.getElementById('resumeBtn').style.display='inline-flex';
+  document.getElementById('camHint').innerHTML='📌 ภาพค้างแล้ว — <b>จิ้มบนภาพ</b>เพื่อวัดค่าสี หรือกด <b>กลับ Live</b> เพื่อถ่ายใหม่';
+  document.getElementById('camAnalysis').style.display='block';
 }
-
-function updateRGBDisplay(r, g, b, previewId, hexId, rFillId, gFillId, bFillId, rValId, gValId, bValId, blueMainId){
-  const hex = '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('');
-  document.getElementById(previewId).style.background = hex;
-  document.getElementById(hexId).textContent = hex.toUpperCase();
-  document.getElementById(rFillId).style.width = (r/255*100)+'%';
-  document.getElementById(gFillId).style.width = (g/255*100)+'%';
-  document.getElementById(bFillId).style.width = (b/255*100)+'%';
-  document.getElementById(rValId).textContent = r;
-  document.getElementById(gValId).textContent = g;
-  document.getElementById(bValId).textContent = b;
-  // ค่าหลักคือ Blue channel เพราะ Carbon Dot เรืองแสงสีน้ำเงิน
-  if(blueMainId) document.getElementById(blueMainId).textContent = b;
+function resumeLive(){
+  fCV.style.display='none';frozen=false;
+  document.getElementById('frozenBadge').style.display='none';
+  document.getElementById('liveBadge').style.display='inline-flex';
+  document.getElementById('capBtn').style.display='inline-flex';
+  document.getElementById('resumeBtn').style.display='none';
+  document.getElementById('camXH').style.display='none';
+  document.getElementById('camHint').innerHTML='เล็งกระดาษให้พร้อมแล้วกด <b>ถ่ายภาพ</b> เพื่อค้างภาพ จากนั้น<b>จิ้มจุด</b>ที่ต้องการวัด';
 }
-
-function addSample(){
-  if(!currentSample) return;
-  sampleHistory.push({...currentSample});
-  renderSampleHistory();
-  document.getElementById('sampleHistCard').style.display = 'block';
+function sampleFrozen(e){
+  const r=fCV.getBoundingClientRect(),sx=fCV.width/r.width,sy=fCV.height/r.height;
+  const {r:rv,g:gv,b:bv}=px(fCtx,(e.clientX-r.left)*sx,(e.clientY-r.top)*sy);
+  cRGB={r:rv,g:gv,b:bv};upd(rv,gv,bv,'cam');
+  document.getElementById('camSaveBtn').style.display='flex';
+  const xh=document.getElementById('camXH');xh.style.display='block';xh.style.left=(e.clientX-r.left)+'px';xh.style.top=(e.clientY-r.top)+'px';
+  drawSpec(rv,gv,bv,'camSC','camSPH',cS);
 }
-
-function renderSampleHistory(){
-  const list = document.getElementById('sampleList');
-  list.innerHTML = sampleHistory.map((s, i) => {
-    const hex = '#' + [s.r,s.g,s.b].map(v => v.toString(16).padStart(2,'0')).join('');
-    return `<div class="sample-item">
-      <div class="swatch" style="background:${hex}"></div>
-      <div>
-        <div style="font-size:0.8rem; color:var(--text);">#${i+1} · (${s.x}, ${s.y})</div>
-        <div class="sample-rgb">R:${s.r} G:${s.g} B:${s.b} · ${hex.toUpperCase()}</div>
-      </div>
-    </div>`;
+function stopCam(){
+  if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;frozen=false;
+  vid.srcObject=null;fCV.style.display='none';
+  document.getElementById('camPH').style.display='flex';
+  document.getElementById('startBtn').style.display='inline-flex';
+  ['capBtn','resumeBtn','stopBtn'].forEach(id=>document.getElementById(id).style.display='none');
+  ['liveBadge','frozenBadge'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('camXH').style.display='none';
+  document.getElementById('camHint').innerHTML='กด <b>เปิดกล้อง</b> แล้วเล็งกระดาษ → กด <b>ถ่ายภาพ</b> เพื่อค้างภาพ → <b>จิ้มจุด</b>ที่ต้องการวัดสี';
+}
+function saveCam(){if(!cRGB)return;cSamples.push({...cRGB,t:new Date().toLocaleTimeString('th')});renderS('cam',cSamples);document.getElementById('camHistCard').style.display='block';}
+function clearCamS(){cSamples=[];renderS('cam',cSamples);}
+function renderS(p,list){
+  const el=document.getElementById(p+'SL');
+  if(!list.length){el.innerHTML='<div style="color:var(--text-dim);font-size:.82rem;text-align:center;padding:10px 0">ยังไม่มีข้อมูล</div>';return;}
+  el.innerHTML=list.map((s,i)=>{
+    const h='#'+[s.r,s.g,s.b].map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();
+    return`<div class="sitem"><div class="sswatch" style="background:${h}"></div><div style="flex:1"><div class="sblue">B = ${s.b}</div><div class="shex">${h} · R:${s.r} G:${s.g} · ${s.t}</div></div><div style="font-family:var(--mono);font-size:.7rem;color:var(--text-dim)">#${i+1}</div></div>`;
   }).join('');
 }
-
-function clearSamples(){ sampleHistory = []; renderSampleHistory(); }
-
-// ═══════════════════════════════════════════════
-// TAB 3: CAMERA
-// ═══════════════════════════════════════════════
-let camStream = null, camSamples = [], camCurrentSample = null;
-
-async function startCamera(){
-  try {
-    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-    const video = document.getElementById('cameraVideo');
-    video.srcObject = camStream;
-    document.getElementById('cameraOverlay').style.display = 'none';
-    document.getElementById('camReticle').style.display = 'block';
-    document.getElementById('startCamBtn').style.display = 'none';
-    document.getElementById('stopCamBtn').style.display = 'inline-flex';
-    document.getElementById('liveBadge').style.display = 'inline-flex';
-    document.getElementById('offBadge').style.display = 'none';
-  } catch(err){
-    alert('ไม่สามารถเข้าถึงกล้องได้: ' + err.message + '\n\nลองเปิดเว็บผ่าน localhost หรือ https นะคะ');
-  }
-}
-
-function stopCamera(){
-  if(camStream) camStream.getTracks().forEach(t => t.stop());
-  camStream = null;
-  document.getElementById('cameraVideo').srcObject = null;
-  document.getElementById('cameraOverlay').style.display = 'flex';
-  document.getElementById('camReticle').style.display = 'none';
-  document.getElementById('startCamBtn').style.display = 'inline-flex';
-  document.getElementById('stopCamBtn').style.display = 'none';
-  document.getElementById('liveBadge').style.display = 'none';
-  document.getElementById('offBadge').style.display = 'inline';
-}
-
-function sampleCamera(event){
-  if(!camStream) return;
-  const video = document.getElementById('cameraVideo');
-  const canvas = document.getElementById('cameraCanvas');
-  const wrap = document.getElementById('cameraWrap');
-  const rect = wrap.getBoundingClientRect();
-
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0);
-
-  const scaleX = video.videoWidth / rect.width;
-  const scaleY = video.videoHeight / rect.height;
-  const px = (event.clientX - rect.left) * scaleX;
-  const py = (event.clientY - rect.top) * scaleY;
-
-  const region = ctx.getImageData(Math.max(0,px-2), Math.max(0,py-2), 5, 5);
-  let r=0, g=0, b=0, count=0;
-  for(let i=0; i<region.data.length; i+=4){
-    r+=region.data[i]; g+=region.data[i+1]; b+=region.data[i+2]; count++;
-  }
-  r=Math.round(r/count); g=Math.round(g/count); b=Math.round(b/count);
-
-  camCurrentSample = {r, g, b};
-  updateRGBDisplay(r,g,b,'camColorPreview','camHexVal','camRFill','camGFill','camBFill','camRVal','camGVal','camBVal','camBlueMain');
-  document.getElementById('camAddBtn').style.display = 'flex';
-
-  // Crosshair
-  const ch = document.getElementById('camCrosshair');
-  ch.style.display = 'block';
-  ch.style.left = (event.clientX - rect.left) + 'px';
-  ch.style.top = (event.clientY - rect.top) + 'px';
-}
-
-function addCamSample(){
-  if(!camCurrentSample) return;
-  camSamples.push({...camCurrentSample});
-  renderCamSamples();
-  document.getElementById('camSampleHistCard').style.display = 'block';
-}
-
-function renderCamSamples(){
-  const list = document.getElementById('camSampleList');
-  list.innerHTML = camSamples.map((s,i) => {
-    const hex = '#' + [s.r,s.g,s.b].map(v => v.toString(16).padStart(2,'0')).join('');
-    return `<div class="sample-item">
-      <div class="swatch" style="background:${hex}"></div>
-      <div>
-        <div style="font-size:0.8rem; color:var(--text);">#${i+1} (กล้อง)</div>
-        <div class="sample-rgb">R:${s.r} G:${s.g} B:${s.b} · ${hex.toUpperCase()}</div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function clearCamSamples(){ camSamples = []; renderCamSamples(); }
 </script>
 </body>
 </html>
